@@ -1,0 +1,3449 @@
+<!doctype html>
+<html lang="ja" data-regalia-page="index">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>REGALIA Parking Lottery</title>
+  <style>
+    :root{
+      --bg: #0F1419;
+      --card: #111421;
+      --text: #E5E7EB;
+      --muted: #9CA3AF;
+      --outline: #374151;
+      /* 画像文字色に寄せた仮アクセント（後で微調整可能） */
+      --accent: #47C6C8;
+      --accent-weak: #2B7E87;
+      --danger: #ef4444;
+      --fg: #E5E7EB;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 0 12px 24px;
+      line-height: 1.5;
+    }
+    html[data-regalia-page="index"] #register-page-only { display: none !important; }
+    html[data-regalia-page="register"] #main-app-only { display: none !important; }
+    /* ロゴ＋タイトル＋版を1行（区切り文字・余白なし） */
+    .header {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 100%;
+    }
+    h1.header-app-name {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      flex: 1 1 auto;
+      max-width: 55vw;
+      text-align: center;
+    }
+    .header-app-version {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 12px rgba(71, 198, 200, 0.35);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .logo {
+      display: block;
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--outline);
+      background: #0b1220;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--outline);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .legend {
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .row { margin: 6px 0; }
+    label { display: inline-block; min-width: 140px; color: var(--muted); font-size: 13px; }
+    input, select {
+      background: #0f1723;
+      color: var(--text);
+      border: 1px solid var(--outline);
+      border-radius: 10px;
+      padding: 8px 10px;
+      min-width: 160px;
+    }
+    /* エントリ：イベント名＝プルダウン感 */
+    select.select-event {
+      width: 100%;
+      max-width: 100%;
+      min-height: 46px;
+      font-size: 15px;
+      font-weight: 600;
+      border: 2px solid var(--accent-weak);
+      border-radius: 12px;
+      padding: 10px 42px 10px 14px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: #0c1524;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2347C6C8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 10px rgba(0,0,0,0.28);
+      cursor: pointer;
+    }
+    select.select-event:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(71, 198, 200, 0.28);
+    }
+    /* Windows 等で option がシステム配色になり見えなくなる対策 */
+    select option {
+      background: #0f1723;
+      color: #e5e7eb;
+    }
+    input[readonly] { color: #cbd5e1; background: #111827; }
+    /* 日付入力は OS ネイティブ UI で幅が跳ねやすい — 他行と揃える */
+    input[type="date"],
+    input[type="datetime-local"] {
+      box-sizing: border-box;
+      max-width: 100%;
+      min-width: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.65);
+      opacity: 0.9;
+      cursor: pointer;
+    }
+    button {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin: 6px 6px 0 0;
+      cursor: pointer;
+      color: #072026;
+      background: var(--accent);
+      font-weight: 700;
+    }
+    button.secondary {
+      color: #072026;
+      background: var(--accent);
+      border-color: transparent;
+      font-weight: 700;
+    }
+    /* メンバーチップ（ターコイズ）と差別化：エントリー確定／取り消し */
+    .entry-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      justify-content: center;
+    }
+    .entry-actions button {
+      margin: 0;
+    }
+    .btn-entry-submit {
+      background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%) !important;
+      color: #052e16 !important;
+      border: 1px solid #15803d !important;
+    }
+    .btn-entry-submit:hover:not(:disabled) {
+      filter: brightness(1.06);
+    }
+    .btn-entry-withdraw {
+      background: linear-gradient(180deg, #64748b 0%, #475569 100%) !important;
+      color: #f8fafc !important;
+      border: 1px solid #94a3b8 !important;
+    }
+    .btn-entry-withdraw:hover:not(:disabled) {
+      filter: brightness(1.08);
+    }
+    button:disabled {
+      background: #4b5563 !important;
+      color: #cbd5e1 !important;
+      border-color: #6b7280 !important;
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: nowrap;
+      width: 100%;
+      margin-bottom: 12px;
+      gap: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--outline);
+      background: #0b1220;
+    }
+    .tab {
+      flex: 1 1 33.33%;
+      min-width: 0;
+      margin: 0 !important;
+      border-radius: 0;
+      border: none;
+      border-right: 1px solid var(--outline);
+      padding: 12px 10px;
+      font-weight: 700;
+      font-size: 14px;
+      background: #151d2e;
+      color: var(--muted);
+    }
+    .tab:last-child { border-right: none; }
+    .tabs-main .tab { flex: 1 1 33.33%; }
+    .tabs-admin .tab { flex: 1 1 0; min-width: 0; }
+    .admin-nav-block { margin-bottom: 12px; }
+    .tab.active {
+      background: linear-gradient(180deg, #5eead4 0%, #2dd4bf 55%, #14b8a6 100%);
+      color: #042f2e;
+      font-weight: 800;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
+      position: relative;
+      z-index: 1;
+    }
+    .tab:not(.active):hover {
+      background: #1a2438;
+      color: var(--text);
+    }
+    .pane { display: none; }
+    .pane.active { display: block; }
+    .cumulative-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    .cumulative-table th,
+    .cumulative-table td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--outline);
+    }
+    .cumulative-table th {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .cumulative-table th.num { text-align: right; }
+    .cumulative-table td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      width: 4.5rem;
+    }
+    .cumulative-table tbody tr:hover { background: rgba(94, 234, 212, 0.06); }
+    .member-name-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .member-unregistered-icon {
+      display: inline-flex;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      background: #f59e0b;
+      color: #1f2937;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+      vertical-align: middle;
+      cursor: help;
+    }
+    .history-results-table,
+    .history-timeline-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    .history-results-table th,
+    .history-results-table td,
+    .history-timeline-table th,
+    .history-timeline-table td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--outline);
+    }
+    .history-results-table th,
+    .history-timeline-table th {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .history-results-table td.num,
+    .history-timeline-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .history-outcome { font-weight: 700; }
+    .history-outcome-winner { color: #4ade80; }
+    .history-outcome-loser { color: #f87171; }
+    .history-outcome-withdrawn { color: #94a3b8; }
+    .history-outcome-pending { color: #fbbf24; }
+    .member-list-title { color: var(--muted); font-size: 13px; margin: 6px 0 8px; }
+    .member-compact {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .member-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--outline);
+      border-radius: 999px;
+      background: #0b1220;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .member-pill.active {
+      border-color: var(--accent);
+      background: #0f2730;
+    }
+    .member-select-btn {
+      white-space: nowrap;
+      width: auto !important;
+      min-width: 0;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+    }
+    /* エントリータブ：メンバーチップ（モーダルと同系統） */
+    .entry-member-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-content: flex-start;
+      justify-content: flex-start;
+      margin: 8px 0 12px;
+      max-height: min(42vh, 320px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      padding: 4px 2px 8px 0;
+    }
+    .entry-feedback {
+      min-height: 1.4em;
+      margin: 4px 0 2px;
+      font-weight: 600;
+    }
+    .entry-feedback-pending {
+      animation: regalia-entry-pulse 1.1s ease-in-out infinite;
+    }
+    @keyframes regalia-entry-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    .entry-entrants-block {
+      margin: 10px 0 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--outline);
+      border-radius: 12px;
+      background: #0b1220;
+      font-size: 13px;
+      max-height: min(38vh, 280px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .entry-entrants-block .entrants-caption {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .entry-entrants-block .entrants-ul {
+      margin: 6px 0 0;
+      padding-left: 1.2em;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .entry-entrants-block .entrants-ul li { margin: 4px 0; }
+    .entry-entrants-block .entrants-summary {
+      color: var(--muted);
+      font-size: 12px;
+      word-break: break-all;
+    }
+    .member-item .num { font-weight: 900; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 12px;
+    }
+    .modal-backdrop.active {
+      display: flex;
+    }
+    /* pointer-events は親に none を付けると子も効かなくなることがあるため使わない */
+    .modal-backdrop .modal {
+      pointer-events: auto;
+    }
+    .modal {
+      width: min(100%, 420px);
+      max-height: 86vh;
+      background: #1a2029;
+      border: 1px solid var(--outline);
+      border-radius: 14px;
+      padding: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal h4 { margin: 0 0 10px; }
+    .modal .meta { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .entry-result-modal {
+      width: min(100%, 360px);
+      text-align: center;
+    }
+    .entry-result-message {
+      margin: 14px 0 10px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--fg);
+    }
+    .member-list {
+      overflow: auto;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 8px 0;
+      margin: 8px 0;
+      flex: 1 1 auto;
+    }
+    .member-row {
+      width: auto;
+      max-width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: var(--accent);
+      color: #072026;
+      padding: 5px 8px;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.25;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    /* メンバー選択: 一覧を確実にスクロール可能に（flex の min-height 対策） */
+    #memberModalBackdrop .modal {
+      max-height: min(92dvh, 92vh);
+      min-height: 0;
+    }
+    #memberModalBackdrop .modal > h4,
+    #memberModalBackdrop .modal > .meta,
+    #memberModalBackdrop #memberSelectedPreview,
+    #memberModalBackdrop .modal-actions {
+      flex-shrink: 0;
+    }
+    #memberModalBackdrop .member-list {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
+      padding: 6px 4px;
+      margin: 6px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 6px 6px;
+    }
+    #memberModalBackdrop .member-list .member-row {
+      flex: 0 0 auto;
+      width: auto !important;
+      max-width: 100%;
+    }
+    #registerMemberModalBackdrop .modal {
+      max-height: min(92dvh, 92vh);
+      min-height: 0;
+    }
+    #registerMemberModalBackdrop .modal > h4,
+    #registerMemberModalBackdrop .modal > .meta,
+    #registerMemberModalBackdrop .modal-actions {
+      flex-shrink: 0;
+    }
+    #registerMemberModalBackdrop .member-list {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
+      padding: 6px 4px;
+      margin: 6px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 6px 6px;
+    }
+    #registerMemberModalBackdrop .member-list .member-row {
+      flex: 0 0 auto;
+      width: auto !important;
+      max-width: 100%;
+    }
+    /* イベント修正: 項目が多いので本文だけスクロール（保存・キャンセルは常に表示） */
+    #editEventModalBackdrop .modal {
+      max-height: min(92dvh, 92vh);
+      min-height: 0;
+    }
+    #editEventModalBackdrop .modal > h4,
+    #editEventModalBackdrop .modal > .edit-event-modal-intro {
+      flex-shrink: 0;
+    }
+    #editEventModalBackdrop .edit-event-modal-scroll {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
+      padding: 2px 4px 8px 0;
+    }
+    #editEventModalBackdrop .modal-actions {
+      flex-shrink: 0;
+    }
+    .member-row:hover { background: #6ff0f1; }
+    .member-row.active {
+      outline: 1px solid var(--accent-weak);
+      background: rgba(71,198,200,0.15);
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .auth-banner-wrap {
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin: 0 0 12px;
+    }
+    .auth-banner-inner {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 100%;
+    }
+    .auth-login-pill {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      justify-content: center;
+      max-width: calc(100% - 56px);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+    .auth-role-ico-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .role-ico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      border-radius: 999px;
+      border: 1px solid var(--outline);
+      box-sizing: border-box;
+    }
+    .role-ico svg { width: 14px; height: 14px; display: block; }
+    .role-ico.admin {
+      color: #5eead4;
+      border-color: rgba(45, 212, 191, 0.45);
+      background: rgba(94, 234, 212, 0.1);
+    }
+    .role-ico.coordinator {
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.45);
+      background: rgba(251, 191, 36, 0.1);
+    }
+    /* メイン3タブ：一般メンバー（単独人物シルエット） */
+    .role-ico.member-user {
+      color: #94a3b8;
+      border-color: rgba(148, 163, 184, 0.45);
+      background: rgba(148, 163, 184, 0.1);
+    }
+    .tabs-main .tab.tab-with-inline-ico .tab-user-ico {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .tabs-main .tab.tab-with-inline-ico .tab-user-ico svg {
+      width: 12px;
+      height: 12px;
+    }
+    .tab.tab-with-inline-ico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+    .tab.tab-with-inline-ico .tab-coord-ico { flex-shrink: 0; }
+    .tabs-admin .tab-admin-master-cell {
+      display: none;
+      flex: 1 1 0;
+      min-width: 0;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex-wrap: nowrap;
+      margin: 0 !important;
+      border-radius: 0;
+      padding: 8px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #151d2e;
+      color: var(--muted);
+      border: none;
+      border-right: none;
+    }
+    .tab-admin-master-cell .role-ico { width: 20px; height: 20px; }
+    .tab-admin-master-cell .role-ico svg { width: 12px; height: 12px; }
+    .admin-master-txt {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    button.admin-master-link {
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: none;
+      color: #5eead4;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.admin-master-link:hover { color: #99f6e4; }
+    .admin-master-sep { color: var(--muted); user-select: none; }
+    .proxy-entry-head {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      margin: 0 0 6px;
+      flex-wrap: wrap;
+    }
+    .proxy-entry-head .proxy-entry-title-icos {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .proxy-entry-head .legend { margin: 0 !important; flex-shrink: 0; }
+    .proxy-entry-head .proxy-entry-title-icos .role-ico { flex-shrink: 0; }
+    #tab-entry { text-align: center; }
+    #pane-entry > .card:first-child .legend.entry-main-legend {
+      text-align: center;
+      width: 100%;
+    }
+    .entry-self-member-line {
+      text-align: center;
+      margin: 8px 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .admin-event-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 16px;
+      margin: 8px 0 12px;
+    }
+    .admin-event-row .row { flex: 1 1 220px; margin: 0; }
+    .event-status-flow {
+      flex: 1 1 200px;
+      max-width: 100%;
+      border: 1px solid var(--outline);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #0b1220;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .event-status-flow .flow-title {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .event-status-flow .status-step {
+      padding: 4px 8px;
+      border-radius: 8px;
+      color: var(--muted);
+      border: 1px solid transparent;
+    }
+    .event-status-flow .status-step.done {
+      color: #94a3b8;
+      text-decoration: line-through;
+      opacity: 0.85;
+    }
+    .event-status-flow .status-step.current {
+      color: var(--text);
+      background: rgba(71,198,200,0.18);
+      border-color: var(--accent-weak);
+      font-weight: 800;
+      text-decoration: none;
+      opacity: 1;
+    }
+    .event-status-flow .status-step.pending { color: #64748b; }
+    .event-status-flow .status-arrow {
+      color: #64748b;
+      padding: 2px 0 2px 8px;
+      font-size: 12px;
+    }
+    .event-status-flow .status-meta {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: pre-line;
+      line-height: 1.5;
+    }
+    .event-status-flow .status-current {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(71,198,200,0.15);
+      border: 1px solid var(--accent-weak);
+    }
+    .event-status-flow .entrants-block {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .event-status-flow .entrants-ul {
+      margin: 6px 0 0;
+      padding-left: 1.2em;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .event-status-flow .entrants-ul li { margin: 4px 0; }
+    .event-status-flow .entrants-summary {
+      color: var(--muted);
+      font-size: 12px;
+      word-break: break-all;
+    }
+    @media (max-width: 520px){
+      body { margin: 12px auto; padding: 0 8px 16px; }
+      h1.header-app-name { font-size: 13px; max-width: 46vw; }
+      .header-app-version { font-size: 12px; }
+      .logo { width: 32px; height: 32px; border-radius: 8px; }
+      .header { gap: 0; margin-bottom: 8px; }
+      .card { padding: 12px; }
+      label { min-width: 0; display: block; margin-bottom: 4px; }
+      .row input, .row select { width: 100%; min-width: 0 !important; max-width: 100%; box-sizing: border-box; }
+      .row input[type="date"],
+      .row input[type="datetime-local"] {
+        display: block;
+        width: 100% !important;
+        max-width: 100%;
+        min-width: 0 !important;
+        font-size: 16px;
+        line-height: 1.35;
+        min-height: 44px;
+        padding: 10px 12px;
+      }
+      button:not(.tab):not(.member-row) { width: auto; margin-right: 6px; }
+      .tabs { gap: 0; }
+      .tabs-main .tab { flex: 1 1 33%; margin: 0 !important; font-size: 11px; padding: 11px 4px; }
+      .tabs-admin .tab { flex: 1 1 0; min-width: 0; margin: 0 !important; font-size: 11px; padding: 11px 4px; }
+      .tabs-admin .tab-admin-master-cell { padding: 6px 2px; gap: 2px; }
+      .admin-event-row { gap: 10px; }
+      .admin-event-row .row, .event-status-flow { flex: 1 1 100%; }
+      .entry-member-grid { max-height: min(48vh, 360px); }
+      .modal { width: min(100%, 96vw); padding: 12px; border-radius: 12px; }
+      .modal-actions { flex-direction: row; flex-wrap: wrap; }
+      .modal-actions button { width: auto; }
+      #memberModalBackdrop .member-list .member-row,
+      #registerMemberModalBackdrop .member-list .member-row {
+        padding: 4px 6px;
+        font-size: 12px;
+        line-height: 1.2;
+      }
+      #memberModalBackdrop #memberSelectedPreview.member-pill {
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+      textarea.share-text { height: 220px; }
+    }
+    textarea.share-text {
+      width: 100%;
+      height: 260px;
+      background: #0f1723;
+      color: var(--text);
+      border: 1px solid var(--outline);
+      border-radius: 10px;
+      padding: 10px 12px;
+      resize: none;
+      outline: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img class="logo" id="appLogo" src="app_logo.jpg" alt="REGALIA logo" />
+    <h1 class="header-app-name">Parking Manager</h1>
+    <span class="header-app-version" id="verInline" title="アプリ版">(loading)</span>
+  </div>
+
+  <div id="authBannerBlock" class="auth-banner-wrap" style="display:none;">
+    <div class="auth-banner-inner">
+      <div id="authLoginBanner" class="member-pill auth-login-pill"></div>
+      <div class="auth-role-ico-wrap" aria-hidden="true">
+        <span id="authRoleAdminBadge" class="role-ico admin" style="display:none;" title="管理者"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 16L3 10l5.5 2L12 4l3.5 8L21 10l-2 6H5zm1.5 2h11v2h-11v-2z"/></svg></span>
+        <span id="authRoleCoordinatorBadge" class="role-ico coordinator" style="display:none;" title="取りまとめ役"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="register-page-only">
+    <div class="card">
+      <div class="legend">初回登録</div>
+      <p id="registerBootError" class="meta" style="display:none;margin:0 0 8px;color:#fca5a5;"></p>
+      <p class="meta" style="margin:0 0 10px;">はじめて使う方だけ、この画面で選手の<strong>背番号</strong>とあなたとの<strong>関係</strong>を登録してください（氏名は表示しません）。登録が完了するとトップ（駐車場エントリ）へ移動します。</p>
+      <div class="member-compact" style="margin:0 0 8px;">
+        <div id="registerSelectedMemberPill" class="member-pill">未選択</div>
+        <button type="button" class="member-select-btn" onclick="openRegisterMemberPicker()">背番号を選ぶ</button>
+      </div>
+      <p id="registerMemberEmptyHint" class="meta" style="display:none;margin:0 0 8px;color:#fca5a5;"></p>
+      <div class="row" style="margin-top:4px;">
+        <label>関係</label>
+        <select id="registerRelation">
+          <option value="父">父</option>
+          <option value="母">母</option>
+          <option value="コーチ">コーチ</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="row" id="registerRelationOtherRow" style="display:none;">
+        <label>その他(自由記入)</label>
+        <input id="registerRelationOther" maxlength="40" />
+      </div>
+      <p id="registerFeedback" class="meta entry-feedback" aria-live="polite"></p>
+      <button type="button" onclick="registerAuth()">登録する</button>
+    </div>
+  </div>
+
+  <div id="main-app-only">
+  <div class="tabs tabs-main">
+    <button type="button" id="tab-entry" class="tab active tab-with-inline-ico">
+      <span class="role-ico member-user tab-user-ico" title="メンバー"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+      <span>駐車場エントリ</span>
+    </button>
+    <button type="button" id="tab-cumulative" class="tab tab-with-inline-ico">
+      <span class="role-ico member-user tab-user-ico" title="メンバー"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+      <span>当選累積リスト</span>
+    </button>
+    <button type="button" id="tab-history" class="tab tab-with-inline-ico">
+      <span class="role-ico member-user tab-user-ico" title="メンバー"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+      <span>当選履歴</span>
+    </button>
+  </div>
+  <div id="adminNavBlock" class="admin-nav-block" style="display:none;">
+    <div class="tabs tabs-admin" style="flex-wrap:nowrap;">
+      <button type="button" id="tab-admin-create" class="tab tab-with-inline-ico">
+        <span id="tabCoordIcoCreate" class="role-ico coordinator tab-coord-ico" style="display:none;" title="取りまとめ役"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+        <span>イベント作成</span>
+      </button>
+      <button type="button" id="tab-admin-manage" class="tab tab-with-inline-ico">
+        <span id="tabCoordIcoManage" class="role-ico coordinator tab-coord-ico" style="display:none;" title="取りまとめ役"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+        <span>イベント管理</span>
+      </button>
+      <div id="adminMasterTabCell" class="tab-admin-master-cell">
+        <span class="role-ico admin" title="管理者"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 16L3 10l5.5 2L12 4l3.5 8L21 10l-2 6H5zm1.5 2h11v2h-11v-2z"/></svg></span>
+        <span class="admin-master-txt">
+          <button type="button" class="admin-master-link" onclick="void adminMasterCsvDownload()">CSVダウンロード</button>
+          <span class="admin-master-sep">・</span>
+          <button type="button" class="admin-master-link" onclick="void adminMasterCsvShare()">共有</button>
+        </span>
+      </div>
+    </div>
+  </div>
+  <p id="adminMasterExportHint" class="meta" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-live="polite"></p>
+
+  <div id="pane-entry" class="pane active">
+    <div class="card">
+      <div class="legend entry-main-legend">駐車場エントリ</div>
+      <div class="row">
+        <label>イベント名</label>
+        <select id="eventSelect" class="select-event"></select>
+      </div>
+      <p id="entryEventEmptyHint" class="meta" style="display:none;margin-top:6px;color:#fca5a5;"></p>
+      <p id="entryEventCoordinatorLine" class="meta" style="margin:6px 0 4px;color:var(--muted);text-align:center;">イベントを選択してください。</p>
+      <p id="entrySelfMemberLine" class="entry-self-member-line" aria-live="polite"></p>
+      <p id="entryInstructionLine" class="meta" style="margin:0 0 10px;text-align:center;">イベントを選択し、「エントリー」または「取り消し」を押してください（登録済みの選手に対して実行されます）。</p>
+      <p id="entryOperationFeedback" class="meta entry-feedback" aria-live="polite"></p>
+      <div class="entry-actions">
+        <button type="button" class="btn-entry-submit" onclick="enter()">エントリー</button>
+        <button type="button" class="btn-entry-withdraw" onclick="cancelEntry()">取り消し</button>
+      </div>
+
+      <div id="entryEntrantsBlock" class="entry-entrants-block" aria-live="polite" style="margin-top:14px;">
+        <div class="entrants-caption">現在のエントリーメンバー</div>
+        <div id="entryCurrentEntrantsList" class="status-meta" style="margin:0;color:var(--muted);">イベントを選択してください。</div>
+      </div>
+
+      <div id="adminEntryMemberBlock" class="member-compact" style="display:none;margin-top:14px;">
+        <div class="proxy-entry-head">
+          <div class="proxy-entry-title-icos" aria-hidden="true">
+            <div class="legend" style="font-size:12px;opacity:0.9;">代理エントリ</div>
+            <span id="proxyRoleAdminIco" class="role-ico admin" style="display:none;" title="管理者"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 16L3 10l5.5 2L12 4l3.5 8L21 10l-2 6H5zm1.5 2h11v2h-11v-2z"/></svg></span>
+            <span id="proxyRoleCoordinatorIco" class="role-ico coordinator" style="display:none;" title="取りまとめ役"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+          </div>
+        </div>
+        <p class="meta" style="margin:0 0 8px;">管理者、またはこのイベントの取り纏め役は代理エントリ・キャンセルが可能です。</p>
+        <div id="entryTargetMemberPill" class="member-pill" style="margin-bottom:6px;">（代理対象メンバー未選択）</div>
+        <div class="row" style="margin:0;flex-wrap:wrap;gap:6px;">
+          <button type="button" class="member-select-btn" onclick="openEntryMemberPicker()">メンバーを選ぶ</button>
+          <button type="button" class="secondary" onclick="entryClearMemberSelection()">選択クリア</button>
+        </div>
+        <p id="proxyEntryOperationFeedback" class="meta entry-feedback" style="margin:10px 0 6px;text-align:center;min-height:1.35em;" aria-live="polite"></p>
+        <div class="entry-actions proxy-entry-actions" style="margin-top:4px;justify-content:center;">
+          <button type="button" id="btnProxyEntry" class="btn-entry-submit" onclick="void proxyEnter()">代理エントリー</button>
+          <button type="button" id="btnProxyCancel" class="btn-entry-withdraw" onclick="void proxyCancel()">代理取り消し</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pane-cumulative" class="pane">
+    <div class="card">
+      <div class="legend">当選累積リスト</div>
+      <p class="meta" style="margin:0 0 6px;">累積に含めないイベント（テスト等）は当選してもカウントされません。並びは累積の少ない順、同数のときは背番号順です。左の優先順位は上位25名に1〜25を付与したものです。</p>
+      <p id="cumulativePaneHint" class="meta" style="margin:0;"></p>
+      <table class="cumulative-table" aria-label="当選累積一覧">
+        <thead>
+          <tr>
+            <th class="num">優先</th>
+            <th class="num">累積</th>
+            <th class="num">背番号</th>
+            <th>氏名</th>
+          </tr>
+        </thead>
+        <tbody id="cumulativeRankBody"></tbody>
+      </table>
+      <p class="meta" style="margin-top:10px;"><button type="button" class="secondary" id="btnRefreshCumulative" onclick="void refreshCumulativePane()">再読込</button></p>
+    </div>
+  </div>
+
+  <div id="pane-history" class="pane">
+    <div class="card">
+      <div class="legend">当選履歴</div>
+      <p class="meta" style="margin:0 0 8px;"><strong>締切済みのイベントのみ</strong>選べます。選んだ回のエントリーしたメンバーと当落を表示します（緑＝当選、赤＝落選、灰＝辞退、黄＝未確定）。</p>
+      <div class="row">
+        <label>イベントで見る</label>
+        <select id="historyEventSelect" class="select-event"></select>
+      </div>
+      <div id="historyEventBoard" class="history-board-wrap" aria-live="polite"></div>
+
+      <hr style="border:none;border-top:1px solid var(--outline);margin:16px 0;" />
+
+      <p class="meta" style="margin:0 0 8px;">メンバーで見ると、<strong>エントリーしたイベントだけ</strong>が締切順に表示されます（イベント名と当落のみ）。</p>
+      <div class="row">
+        <label>メンバーで見る</label>
+        <select id="historyMemberSelect"></select>
+      </div>
+      <div id="historyMemberTimeline" class="history-timeline-wrap" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div id="pane-admin-create" class="pane">
+    <div class="card">
+      <div class="legend">新規イベント作成</div>
+      <div class="row"><label>イベント名</label><input id="title" value="練習試合" style="width:260px;" /></div>
+      <div class="row"><label>日付</label><input id="eventDate" type="date" /></div>
+      <div class="row"><label>駐車場枠数</label><input id="seats" type="number" value="5" min="1" /></div>
+      <div class="row"><label>締切日時</label><input id="deadline" type="datetime-local" style="width:min(100%,260px);min-width:200px;" /></div>
+      <p class="meta" style="margin:-4px 0 8px;">日付を変えると「前日 18:00」に締切を自動セットします。時刻はこの欄で自由に変更できます。</p>
+      <p id="adminCreateOperationFeedback" class="meta entry-feedback" style="margin:8px 0 10px;text-align:center;min-height:1.35em;" aria-live="polite"></p>
+      <button type="button" id="btnCreateEvent" onclick="onCreateEventClick(event)">作成</button>
+    </div>
+  </div>
+
+  <div id="pane-admin-manage" class="pane">
+    <div class="card">
+      <div class="legend">イベント操作</div>
+      <div class="admin-event-row">
+        <div class="row"><label>イベント名</label><select id="adminEventSelect" class="select-event"></select></div>
+        <p id="adminEventEmptyHint" class="meta" style="display:none;margin-top:6px;color:#fca5a5;"></p>
+        <div class="event-status-flow" id="adminEventStatusFlow" aria-live="polite">
+          <div class="flow-title">ステータス</div>
+          <div id="adminEventStatusCurrent" class="status-current">—</div>
+          <div class="status-meta" id="adminEventStatusMeta"></div>
+          <div class="entrants-block">
+            <div class="flow-title">現在のエントリーメンバー</div>
+            <div id="adminEventEntrantsList" class="status-meta"></div>
+          </div>
+        </div>
+      </div>
+      <!-- 第2回締切欄は不要（仕様変更） -->
+      <p id="adminManageOperationFeedback" class="meta entry-feedback" style="margin:10px 0 12px;text-align:center;min-height:1.35em;" aria-live="polite"></p>
+      <button type="button" id="btnReloadEvents" class="secondary" onclick="void adminReloadEvents()">イベント再読込</button>
+      <button type="button" id="btnEditEvent" class="secondary" onclick="openEditEventModal()">イベント修正</button>
+      <button type="button" id="btnConfirmPhase1" onclick="confirmPhase1()" title="通常は締切時に自動確定されます。何かの理由で締切前に確定したいときに使います。">第1回確定（締め切り前の強制確定）</button>
+      <button type="button" id="btnOpenPhase2" onclick="openPhase2()">第2回募集開始</button>
+      <button type="button" id="btnEntryRequestMsg" class="secondary" onclick="entryRequestMsg()">エントリー依頼文面生成</button>
+      <button type="button" id="btnResultNotifyMsg" class="secondary" onclick="shareMsg()">結果通知文面生成</button>
+      <button type="button" id="btnDeleteEvent" class="secondary" onclick="deleteEvent()">イベント削除</button>
+    </div>
+  </div>
+  </div>
+
+  <div id="memberModalBackdrop" class="modal-backdrop" onclick="closeMemberSelector(false)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h4 id="memberModalTitle">エントリー対象メンバー</h4>
+      <div class="meta">選択済み: <span id="memberSelectedCount">0</span> 人（タップで追加／解除）</div>
+      <div id="memberSelectedPreview" class="member-pill" style="margin-bottom:8px;">未選択</div>
+      <div class="member-list" id="memberSelectorList"></div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeMemberSelector(false)">キャンセル</button>
+        <button type="button" onclick="closeMemberSelector(true)">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editEventModalBackdrop" class="modal-backdrop" onclick="closeEditEventModal(false)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h4>イベント修正</h4>
+      <div class="meta edit-event-modal-intro" style="margin-bottom:8px;">名前・締切日時・枠数・フェーズ・ステータスを更新します。</div>
+      <div class="edit-event-modal-scroll" role="region" aria-label="イベント修正フォーム">
+      <div class="row"><label>イベント名</label><input id="editEventTitle" style="width:260px;min-width:200px;" /></div>
+      <div class="row"><label>締切日時</label><input id="editEventDeadline" type="datetime-local" style="width:min(100%,260px);min-width:200px;" /></div>
+      <div class="row"><label>駐車場枠数</label><input id="editEventSeats" type="number" min="1" /></div>
+      <div class="row"><label>フェーズ</label>
+        <select id="editEventPhase">
+          <option value="1">1（第1回）</option>
+          <option value="2">2（第2回）</option>
+        </select>
+      </div>
+      <div class="row"><label>ステータス</label>
+        <select id="editEventStatus">
+          <option value="collecting">第1回エントリー中 (collecting)</option>
+          <option value="grace_phase1">締切後猶予中 (grace_phase1)</option>
+          <option value="phase1_confirmed">第1回確定 (phase1_confirmed)</option>
+          <option value="collecting_phase2">第2回募集中 (collecting_phase2)</option>
+          <option value="completed">完了 (completed)</option>
+        </select>
+      </div>
+      <div class="row" style="align-items:flex-start;">
+        <label>自動更新</label>
+        <label class="meta" style="margin:0;display:flex;gap:8px;align-items:center;cursor:pointer;">
+          <input type="checkbox" id="editSkipStatusAutomation" />
+          締切に合わせた自動ステータス更新を止める（手動で運用する）
+        </label>
+      </div>
+      <div class="row"><label>取り纏め役</label><select id="editEventCoordinator" style="width:min(100%,280px);min-width:200px;"></select></div>
+      <p class="meta" style="margin:-6px 0 8px;">このイベントの駐車場取り纏めを担当する選手（代理エントリー可）。</p>
+      </div>
+      <p id="editEventOperationFeedback" class="meta entry-feedback" style="margin:8px 0 4px;text-align:center;min-height:1.35em;" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeEditEventModal(false)">キャンセル</button>
+        <button type="button" onclick="saveEditEvent()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="entryResultModalBackdrop" class="modal-backdrop" onclick="closeEntryResultModal()">
+    <div class="modal entry-result-modal" onclick="event.stopPropagation()">
+      <h4>完了</h4>
+      <p id="entryResultMessage" class="entry-result-message"></p>
+      <div class="modal-actions">
+        <button type="button" onclick="closeEntryResultModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="registerMemberModalBackdrop" class="modal-backdrop" onclick="closeRegisterMemberPicker()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h4>背番号を選ぶ</h4>
+      <div class="meta" style="margin-bottom:8px;">タップして選択します（氏名は表示しません）。</div>
+      <div class="member-list" id="registerMemberModalList" aria-label="登録用背番号一覧"></div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeRegisterMemberPicker()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shareModalBackdrop" class="modal-backdrop" onclick="closeShareModal(false)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h4>LINE共有文面</h4>
+      <div class="meta" style="margin-bottom:10px;">そのままコピペしてください</div>
+      <textarea id="shareMessageText" class="share-text" readonly></textarea>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeShareModal(false)">閉じる</button>
+        <button type="button" onclick="copyShareMessage()">コピー</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** GitHub Pages: deploy workflow injects this */
+window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec = 'https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec';
+window.__UI_BUILD__ = '20260422-1';
+window.__REGALIA_GAS__ = false;
+window.__REGALIA_CONFIG_LOADED__ = false;
+
+function regaliaAppPageUrl_(path) {
+  var u = String(window.__REGALIA_PAGES_BASE__ || '') || (location.origin + location.pathname.replace(/[^/]*$/, ''));
+  if (path === '/register' || path === 'register') { return u + 'register.html' + (location.search || ''); }
+  if (path === '/assets/logo' || path === 'app_logo.jpg') { return u + 'app_logo.jpg'; }
+  if (path === '/' || !path) { return u + 'index.html' + (location.search || ''); }
+  return u + path.replace(/^\//, '');
+}
+
+async function fetchParkingConfig_() {
+  var base = (typeof window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec === 'string' ? window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec : '').trim();
+  if (!base) return;
+  if (String(base).indexOf('__GAS_') === 0) return;
+  var u = (base.indexOf('?') >= 0 ? base + '&' : base + '?') + '_path=config';
+  var r = await fetch(u);
+  var j = await r.json();
+  if (j && j.liff_id) window.__REGALIA_LIFF_ID__ = j.liff_id;
+  if (j && j.regalia_gas) window.__REGALIA_GAS__ = true;
+  if (j && j.version) {
+    var el = document.getElementById('verInline');
+    if (el) el.textContent = j.version + ' · ui ' + (window.__UI_BUILD__ || '');
+  }
+  window.__REGALIA_CONFIG_LOADED__ = true;
+  var dir = String(window.location.href || '').split('?')[0].replace(/[^/]+$/, '');
+  window.__REGALIA_PAGES_BASE__ = dir;
+  window.__REGALIA_API_BASE__ = base.split('?')[0];
+}
+
+function regaliaApiUrl(path){
+  var b = typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__ : '';
+  if(!path) return b || path;
+  if(path.indexOf('http://') === 0 || path.indexOf('https://') === 0) return path;
+  if (path === '/' || path === '/index.html') { return regaliaAppPageUrl_('/'); }
+  if (path === '/register' || path === 'register' || path === 'register.html' || path === '/assets/logo' || path === 'app_logo.jpg') {
+    return regaliaAppPageUrl_(path);
+  }
+  if (window.__REGALIA_GAS__ && b) {
+    var p = (path || '').replace(/^\//, '');
+    return (b.indexOf('?') >= 0 ? b + '&' : b + '?') + '_path=' + encodeURIComponent(p);
+  }
+  if(b) return b + path;
+  return path;
+}
+
+/** LINE ログインの redirectUri: GitHub Pages では Pages の URL ベース。 */
+function regaliaLiffRedirectUri(){
+  var path = typeof window.location.pathname === 'string' ? window.location.pathname : '/';
+  if(!path || path.charAt(0) !== '/') path = '/' + (path || '');
+  var q = typeof window.location.search === 'string' ? window.location.search : '';
+  if (window.__REGALIA_GAS__ || (window.__REGALIA_CONFIG_LOADED__ && !window.__REGALIA_DEV_AUTH_OK__)) {
+    return String(window.location.href || '').split('#')[0];
+  }
+  var b = typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__.trim() : '';
+  if(b){
+    return b.replace(/\/+$/, '') + path + q;
+  }
+  return String(window.location.href || '').split('#')[0];
+}
+var __regaliaDiagPush = function(){};
+(function regaliaDiagCore(){
+  var buf = [];
+  var flushTimer = null;
+  function flush(){
+    if(buf.length === 0) return;
+    var batch = buf.splice(0, buf.length);
+    try{
+      if (window.__REGALIA_GAS__ && window.__REGALIA_API_BASE__) {
+        var b = String(window.__REGALIA_API_BASE__ || '').split('?')[0];
+        if (b) { fetch(b, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _path: 'diag-browser-log', _http: 'POST', entries: batch, id_token: typeof __idToken === 'string' ? __idToken : '' }) }).catch(function(){}); return; }
+      }
+      fetch(regaliaApiUrl('/diag-browser-log'), { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ entries: batch }) }).catch(function(){});
+    } catch(_e) {}
+  }
+  __regaliaDiagPush = function(kind, detail){
+    try{
+      var e = { kind: kind, t: Date.now() };
+      if(detail && typeof detail === 'object'){
+        for(var k in detail){
+          if(Object.prototype.hasOwnProperty.call(detail, k)){ e[k] = detail[k]; }
+        }
+      }
+      buf.push(e);
+      if(buf.length > 40) flush();
+      else { clearTimeout(flushTimer); flushTimer = setTimeout(flush, 400); }
+    } catch(_x) {}
+  };
+  function pick(el){
+    if(!el) return { tag: 'null' };
+    try{
+      var cs = window.getComputedStyle(el);
+      return {
+        tag: el.tagName,
+        id: el.id || '',
+        cls: String(el.className || '').slice(0, 160),
+        pe: cs.pointerEvents,
+        zi: cs.zIndex,
+        pos: cs.position,
+        disp: cs.display,
+        vis: cs.visibility,
+        op: String(cs.opacity)
+      };
+    } catch(e2){
+      return { tag: el.tagName, err: String(e2) };
+    }
+  }
+  function stackFromPoint(x, y){
+    var list = [];
+    try{
+      var els = document.elementsFromPoint(x, y);
+      var max = Math.min(els.length, 12);
+      for(var i = 0; i < max; i++){
+        list.push(pick(els[i]));
+      }
+    } catch(e3){
+      list.push({ err: String(e3) });
+    }
+    return list;
+  }
+  document.addEventListener('pointerdown', function(ev){
+    __regaliaDiagPush('pointerdown', { x: ev.clientX, y: ev.clientY, btn: ev.button, ttag: pick(ev.target), stack: stackFromPoint(ev.clientX, ev.clientY) });
+  }, true);
+  document.addEventListener('click', function(ev){
+    __regaliaDiagPush('click', { x: ev.clientX, y: ev.clientY, ttag: pick(ev.target), stack: stackFromPoint(ev.clientX, ev.clientY), defPrev: ev.defaultPrevented });
+  }, true);
+  window.addEventListener('load', function(){
+    __regaliaDiagPush('window-load', { href: location.href, ua: navigator.userAgent, w: innerWidth, h: innerHeight });
+    setTimeout(flush, 100);
+  });
+})();
+window.onerror = function(msg, src, line, col, err){
+  try{ __regaliaDiagPush('js-error', { msg: String(msg), line: line, src: String(src || '') }); } catch(_e) {}
+  try{
+    var pre = document.getElementById('out');
+    if(pre){ pre.textContent = 'JS ERROR: ' + msg + ' (line ' + line + ')'; }
+  } catch(_e2) {}
+  return false;
+};
+window.addEventListener('unhandledrejection', function(ev){
+  try{
+    __regaliaDiagPush('promise', { reason: ev.reason && ev.reason.message ? String(ev.reason.message) : String(ev.reason) });
+  } catch(_e) {}
+  try{
+    var pre = document.getElementById('out');
+    if(pre){ pre.textContent = 'PROMISE: ' + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)); }
+  } catch(_e2) {}
+});
+
+const out = (v) => {
+  try{
+    var el = document.getElementById('out');
+    if(!el) return;
+    el.textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+  } catch(_e){}
+};
+
+let __membersCache = [];
+let __eventsCache = [];
+let __authMe = null;
+let __registerMemberNumber = null;
+let __idToken = '';
+let __regaliaDevSecret = '';
+let __entryTargetMemberSet = new Set();
+let __entryMemberPickerDraft = new Set();
+
+(function regaliaResetModals(){
+  ['memberModalBackdrop','shareModalBackdrop','editEventModalBackdrop','entryResultModalBackdrop','registerMemberModalBackdrop'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+})();
+
+/** 管理者、または次回取りまとめ役（members.next_admin）ならイベント新規作成可 */
+function canCreateEvent(){
+  if(!__authMe || !__authMe.registered) return false;
+  return !!(__authMe.is_admin || __authMe.is_next_coordinator);
+}
+
+function switchTab(name){
+  try{ __regaliaDiagPush('switchTab-call', { name: name }); } catch(_e) {}
+  const entryTab = document.getElementById('tab-entry');
+  const cumTab = document.getElementById('tab-cumulative');
+  const histTab = document.getElementById('tab-history');
+  const tabCreate = document.getElementById('tab-admin-create');
+  const tabManage = document.getElementById('tab-admin-manage');
+  const entryPane = document.getElementById('pane-entry');
+  const cumPane = document.getElementById('pane-cumulative');
+  const histPane = document.getElementById('pane-history');
+  const paneCreate = document.getElementById('pane-admin-create');
+  const paneManage = document.getElementById('pane-admin-manage');
+  if(!entryTab || !cumTab || !histTab || !histPane || !entryPane || !cumPane){
+    try{ __regaliaDiagPush('switchTab-missing-dom', { name: name }); } catch(_e2) {}
+    return;
+  }
+  const isEntry = name === 'entry';
+  const isCum = name === 'cumulative';
+  const isHist = name === 'history';
+  const isCreate = name === 'admin-create';
+  const isManage = name === 'admin-manage';
+  if(isCreate && !canCreateEvent()){
+    switchTab('admin-manage');
+    return;
+  }
+  entryTab.classList.toggle('active', isEntry);
+  cumTab.classList.toggle('active', isCum);
+  histTab.classList.toggle('active', isHist);
+  if(tabCreate){ tabCreate.classList.toggle('active', isCreate); }
+  if(tabManage){ tabManage.classList.toggle('active', isManage); }
+  entryPane.classList.toggle('active', isEntry);
+  cumPane.classList.toggle('active', isCum);
+  histPane.classList.toggle('active', isHist);
+  if(paneCreate){ paneCreate.classList.toggle('active', isCreate); }
+  if(paneManage){ paneManage.classList.toggle('active', isManage); }
+  if(name === 'cumulative'){
+    void refreshCumulativePane();
+  }
+  if(name === 'history'){
+    void refreshHistoryEventBoard();
+    void refreshHistoryMemberTimeline();
+  }
+}
+
+async function refreshCumulativePane(){
+  const tbody = document.getElementById('cumulativeRankBody');
+  const hint = document.getElementById('cumulativePaneHint');
+  if(!tbody) return;
+  try{
+    const members = await req('/members');
+    if(Array.isArray(members)){
+      __membersCache = members;
+    }
+  } catch(_e){}
+  const list = Array.isArray(__membersCache) ? __membersCache.slice() : [];
+  list.sort(function(a, b){
+    const ca = Number(a.cumulative) || 0;
+    const cb = Number(b.cumulative) || 0;
+    if(ca !== cb){ return ca - cb; }
+    return Number(a.member_number) - Number(b.member_number);
+  });
+  tbody.innerHTML = '';
+  if(hint){ hint.textContent = '表示件数 ' + list.length + ' 名（累積昇順 → 背番号昇順）'; }
+  if(list.length === 0){
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 4;
+    td.className = 'meta';
+    td.textContent = 'メンバー一覧がありません。';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    try{ populateHistorySelects(); } catch(_ph2){}
+    return;
+  }
+  for(var i = 0; i < list.length; i++){
+    const m = list[i];
+    const tr = document.createElement('tr');
+    const tdPri = document.createElement('td');
+    tdPri.className = 'num';
+    tdPri.textContent = i < 25 ? String(i + 1) : '';
+    const tdC = document.createElement('td');
+    tdC.className = 'num';
+    tdC.textContent = String(Number(m.cumulative) || 0);
+    const tdN = document.createElement('td');
+    tdN.className = 'num';
+    tdN.textContent = String(m.member_number);
+    const tdName = document.createElement('td');
+    const nmWrap = document.createElement('span');
+    nmWrap.className = 'member-name-cell';
+    const nmText = document.createElement('span');
+    nmText.textContent = String(m.name_ja || m.name_en || '—');
+    nmWrap.appendChild(nmText);
+    if(!m.is_registered){
+      const warn = document.createElement('span');
+      warn.className = 'member-unregistered-icon';
+      warn.textContent = '!';
+      warn.title = '初回登録が未完了です';
+      warn.setAttribute('aria-label', '初回登録が未完了');
+      nmWrap.appendChild(warn);
+    }
+    tdName.appendChild(nmWrap);
+    tr.appendChild(tdPri);
+    tr.appendChild(tdC);
+    tr.appendChild(tdN);
+    tr.appendChild(tdName);
+    tbody.appendChild(tr);
+  }
+  try{ populateHistorySelects(); } catch(_ph){}
+}
+
+function formatEventLabel(e){
+  try{
+    let title = (e && (e.title || e.header)) ? String(e.title || e.header) : ('event@' + (e && e.event_col != null ? e.event_col : '?'));
+    const pipeIdx = title.indexOf('|');
+    if(pipeIdx !== -1){ title = title.substring(0, pipeIdx).trim(); }
+
+    const winnerCount = Number(e.winner_count != null ? e.winner_count : 0);
+    const remaining = Number(e.remaining_seats != null ? e.remaining_seats : 0);
+    const rawSeats = Number(e.seats != null ? e.seats : 0);
+    const displaySeats = rawSeats > 0 ? rawSeats : (winnerCount + remaining);
+
+    const t = title.trim();
+    const wdKanji = '月火水木金土日';
+
+    function hasFullWidthFrame(s){
+      const o = s.indexOf('（枠');
+      if(o < 0) return false;
+      const c = s.indexOf('）', o + 2);
+      if(c < 0) return false;
+      const num = s.substring(o + 2, c);
+      for(let i = 0; i < num.length; i++){
+        const ch = num.charAt(i);
+        if(ch < '0' || ch > '9') return false;
+      }
+      return num.length > 0;
+    }
+
+    function hasJaDatePrefixPlain(s){
+      const m = s.match(/^([0-9]{1,2})月([0-9]{1,2})日/);
+      if(!m) return false;
+      const rest = s.substring(m[0].length);
+      if(rest.length < 3) return false;
+      if(rest.charAt(0) !== '(') return false;
+      if(rest.charAt(2) !== ')') return false;
+      return wdKanji.indexOf(rest.charAt(1)) >= 0;
+    }
+
+    function stripTrailingFullWidthFrame(s){
+      const o = s.lastIndexOf('（枠');
+      if(o < 0) return s;
+      const c = s.indexOf('）', o + 2);
+      if(c < 0 || c !== s.length - 1) return s;
+      const num = s.substring(o + 2, c);
+      for(let i = 0; i < num.length; i++){
+        const ch = num.charAt(i);
+        if(ch < '0' || ch > '9') return s;
+      }
+      if(num.length === 0) return s;
+      return s.substring(0, o).replace(/\\s+$/g, '').trim();
+    }
+
+    const hasFrame = hasFullWidthFrame(t);
+    const hasJaDatePrefix = hasJaDatePrefixPlain(t);
+    if(hasJaDatePrefix && hasFrame){ return t; }
+    if(hasJaDatePrefix && !hasFrame){ return t + '（枠' + displaySeats + '）'; }
+
+    const deadline = e && e.deadline ? new Date(e.deadline) : null;
+    const baseTitle = stripTrailingFullWidthFrame(t);
+    if(deadline && !isNaN(deadline.getTime())){
+      const eventDt = new Date(deadline.getTime() + 24*60*60*1000);
+      const wd = ['日','月','火','水','木','金','土'][eventDt.getDay()];
+      const dateStr = (eventDt.getMonth()+1) + '月' + eventDt.getDate() + '日(' + wd + ')';
+      return dateStr + ' ' + baseTitle + '（枠' + displaySeats + '）';
+    }
+    return baseTitle + '（枠' + displaySeats + '）';
+  } catch(err){
+    return 'event@' + (e && e.event_col != null ? e.event_col : '?');
+  }
+}
+
+/** エントリー対象: 募集中イベントのみ（第1回/第2回募集）。 */
+function isEventOpenForEntry(e){
+  if(!e) return false;
+  const st = String(e.status || '').trim();
+  return st === 'collecting' || st === 'collecting_phase2';
+}
+
+function historyOutcomeClass(kind){
+  const k = String(kind || '');
+  if(k === 'winner') return 'history-outcome history-outcome-winner';
+  if(k === 'loser') return 'history-outcome history-outcome-loser';
+  if(k === 'withdrawn') return 'history-outcome history-outcome-withdrawn';
+  if(k === 'pending') return 'history-outcome history-outcome-pending';
+  return 'history-outcome';
+}
+
+/** 当選履歴の「イベントで見る」：締切日時を過ぎたイベントのみ */
+function isEventPastForHistory(e){
+  if(!e) return false;
+  const dl = e.deadline;
+  if(dl == null || dl === '') return false;
+  const t = new Date(dl).getTime();
+  if(isNaN(t)) return false;
+  return t < Date.now();
+}
+
+function populateHistorySelects(){
+  const hs = document.getElementById('historyEventSelect');
+  const hm = document.getElementById('historyMemberSelect');
+  const events = Array.isArray(__eventsCache) ? __eventsCache : [];
+  const pastEvents = events.filter(isEventPastForHistory);
+  const members = Array.isArray(__membersCache) ? __membersCache : [];
+  if(hs){
+    const cur = hs.value;
+    hs.innerHTML = '';
+    const z = document.createElement('option');
+    z.value = '';
+    z.textContent = '（締切済みを選択）';
+    hs.appendChild(z);
+    pastEvents.forEach(function(e){
+      const o = document.createElement('option');
+      o.value = String(e.event_col);
+      o.textContent = formatEventLabel(e);
+      hs.appendChild(o);
+    });
+    if(cur && Array.from(hs.options).some(function(x){ return x.value === cur; })){
+      hs.value = cur;
+    } else {
+      if(cur){
+        hs.value = '';
+        void refreshHistoryEventBoard();
+      }
+    }
+  }
+  if(hm){
+    const cur2 = hm.value;
+    hm.innerHTML = '';
+    const z2 = document.createElement('option');
+    z2.value = '';
+    z2.textContent = '（メンバーで見る）';
+    hm.appendChild(z2);
+    members.slice().sort(function(a, b){ return Number(a.member_number) - Number(b.member_number); }).forEach(function(m){
+      const o = document.createElement('option');
+      o.value = String(m.member_number);
+      const ja = String(m.name_ja || '').trim();
+      o.textContent = ja ? ('#' + m.member_number + ' ' + ja) : ('#' + m.member_number);
+      hm.appendChild(o);
+    });
+    if(cur2 && Array.from(hm.options).some(function(x){ return x.value === cur2; })){
+      hm.value = cur2;
+    }
+  }
+}
+
+async function refreshHistoryEventBoard(){
+  const wrap = document.getElementById('historyEventBoard');
+  const sel = document.getElementById('historyEventSelect');
+  if(!wrap || !sel) return;
+  const c = Number(sel.value);
+  if(!c){
+    wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;">締切済みのイベントを選択してください。</p>';
+    return;
+  }
+  wrap.innerHTML = '<p class="meta">読み込み中…</p>';
+  try{
+    const data = await req('/events/' + c + '/lottery-board');
+    const rows = (data && data.rows) ? data.rows : [];
+    if(rows.length === 0){
+      wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;">エントリーしたメンバーはまだいません。</p>';
+      return;
+    }
+    const tbl = document.createElement('table');
+    tbl.className = 'history-results-table';
+    tbl.setAttribute('aria-label', 'イベント当落一覧');
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    ['背番号','氏名','結果'].forEach(function(label, idx){
+      const th = document.createElement('th');
+      if(idx === 0) th.className = 'num';
+      th.textContent = label;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    tbl.appendChild(thead);
+    const tb = document.createElement('tbody');
+    rows.forEach(function(row){
+      const tr = document.createElement('tr');
+      const tdN = document.createElement('td');
+      tdN.className = 'num';
+      tdN.textContent = String(row.member_number);
+      const tdJa = document.createElement('td');
+      tdJa.textContent = row.name_ja || '—';
+      const tdO = document.createElement('td');
+      const span = document.createElement('span');
+      span.className = historyOutcomeClass(row.kind);
+      span.textContent = row.label || '—';
+      tdO.appendChild(span);
+      tr.appendChild(tdN);
+      tr.appendChild(tdJa);
+      tr.appendChild(tdO);
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    wrap.innerHTML = '';
+    wrap.appendChild(tbl);
+  } catch(_e){
+    wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;color:#fca5a5;">取得に失敗しました。</p>';
+  }
+}
+
+async function refreshHistoryMemberTimeline(){
+  const wrap = document.getElementById('historyMemberTimeline');
+  const sel = document.getElementById('historyMemberSelect');
+  if(!wrap || !sel) return;
+  const mn = Number(sel.value);
+  if(!mn){
+    wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;">「メンバーで見る」から選択してください。</p>';
+    return;
+  }
+  wrap.innerHTML = '<p class="meta">読み込み中…</p>';
+  try{
+    const data = await req('/members/' + mn + '/entry-timeline');
+    const items = (data && data.items) ? data.items : [];
+    if(items.length === 0){
+      wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;">エントリー履歴があるイベントはありません。</p>';
+      return;
+    }
+    const tbl = document.createElement('table');
+    tbl.className = 'history-timeline-table';
+    tbl.setAttribute('aria-label', 'メンバー当落履歴');
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    ['イベント名','結果'].forEach(function(label){
+      const th = document.createElement('th');
+      th.textContent = label;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    tbl.appendChild(thead);
+    const tb = document.createElement('tbody');
+    items.forEach(function(it){
+      const tr = document.createElement('tr');
+      const tdT = document.createElement('td');
+      tdT.textContent = it.title || ('列' + it.event_col);
+      const tdO = document.createElement('td');
+      const span = document.createElement('span');
+      span.className = historyOutcomeClass(it.kind);
+      span.textContent = it.label || '—';
+      tdO.appendChild(span);
+      tr.appendChild(tdT);
+      tr.appendChild(tdO);
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    wrap.innerHTML = '';
+    wrap.appendChild(tbl);
+  } catch(_e){
+    wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;color:#fca5a5;">取得に失敗しました。</p>';
+  }
+}
+
+async function adminMasterCsvDownload(){
+  const hint = document.getElementById('adminMasterExportHint');
+  try{
+    var blob;
+    if (window.__REGALIA_GAS__) {
+      const j = await req('/admin/export-master-csv', 'GET', null, true);
+      if (j && j._httpStatus && j._httpStatus >= 400) throw new Error((j && j.detail) || 'export failed');
+      const txt = (j && (j.text != null)) ? j.text : (typeof j === 'string' ? j : JSON.stringify(j));
+      blob = new Blob([String(txt || '')], { type: 'text/csv;charset=utf-8' });
+    } else {
+    const url = regaliaApiUrl('/admin/export-master-csv');
+    const r = await fetch(url, { headers: regaliaAuthHeaders() });
+    if(!r.ok){
+      const t = await r.text();
+      if(hint) hint.textContent = '失敗: ' + t.slice(0, 200);
+      showNoticePopup('CSVの取得に失敗しました。');
+      return;
+    }
+    blob = await r.blob();
+    }
+    const name = 'regalia_master_' + new Date().toISOString().slice(0, 10) + '.csv';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    if(hint) hint.textContent = 'ダウンロードしました。';
+    showNoticePopup('マスターCSVをダウンロードしました。');
+  } catch(e){
+    if(hint) hint.textContent = 'エラー: ' + (e && e.message ? e.message : String(e));
+    showNoticePopup('ダウンロードエラー: ' + (e && e.message ? e.message : String(e)));
+  }
+}
+
+async function adminMasterCsvShare(){
+  const hint = document.getElementById('adminMasterExportHint');
+  try{
+    var blob;
+    if (window.__REGALIA_GAS__) {
+      const j = await req('/admin/export-master-csv', 'GET', null, true);
+      if (j && j._httpStatus && j._httpStatus >= 400) { if(hint) hint.textContent = '失敗: export'; return; }
+      const txt2 = (j && (j.text != null)) ? j.text : '';
+      blob = new Blob([String(txt2 || '')], { type: 'text/csv;charset=utf-8' });
+    } else {
+    const url = regaliaApiUrl('/admin/export-master-csv');
+    const r = await fetch(url, { headers: regaliaAuthHeaders() });
+    if(!r.ok){
+      const t = await r.text();
+      if(hint) hint.textContent = '失敗: ' + t.slice(0, 200);
+      return;
+    }
+    blob = await r.blob();
+    }
+    const name = 'regalia_master_' + new Date().toISOString().slice(0, 10) + '.csv';
+    const file = new File([blob], name, { type: 'text/csv;charset=utf-8' });
+    if(navigator.share){
+      if(navigator.canShare && !navigator.canShare({ files: [file] })){
+        if(hint) hint.textContent = 'この端末ではファイル共有に未対応です。「CSVダウンロード」をご利用ください。';
+        return;
+      }
+      await navigator.share({ files: [file], title: 'REGALIA マスターCSV' });
+      if(hint) hint.textContent = '共有シートを開きました。';
+      return;
+    }
+    if(hint) hint.textContent = 'Web Share API がありません。「CSVダウンロード」をご利用ください。';
+  } catch(e){
+    if(e && e.name === 'AbortError'){
+      if(hint) hint.textContent = '共有をキャンセルしました。';
+      return;
+    }
+    if(hint) hint.textContent = 'エラー: ' + (e && e.message ? e.message : String(e));
+  }
+}
+
+function fmtIsoLocal(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${day}T${hh}:${mm}`;
+}
+
+function setDefaultEventDateAndDeadline(){
+  const dateInput = document.getElementById('eventDate');
+  const deadlineInput = document.getElementById('deadline');
+  if(!dateInput || !deadlineInput) return;
+  if(!dateInput.value){
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    dateInput.value = `${y}-${m}-${d}`;
+  }
+  updateDeadlineFromEventDate();
+}
+
+function updateDeadlineFromEventDate(){
+  const dateInput = document.getElementById('eventDate');
+  const deadlineInput = document.getElementById('deadline');
+  if(!dateInput || !deadlineInput) return;
+  if(!dateInput.value){
+    deadlineInput.value = '';
+    return;
+  }
+  const [y,m,d] = dateInput.value.split('-').map(Number);
+  // イベント日の前日18:00を自動設定
+  const deadline = new Date(y, m - 1, d, 18, 0, 0, 0);
+  deadline.setDate(deadline.getDate() - 1);
+  deadlineInput.value = fmtIsoLocal(deadline);
+}
+
+/** 締切ISO（前日18:00）からイベント日の date input 用 YYYY-MM-DD */
+function eventDateFromDeadlineIso(iso){
+  if(!iso) return '';
+  const deadline = new Date(iso);
+  if(isNaN(deadline.getTime())) return '';
+  const ev = new Date(deadline.getTime());
+  ev.setDate(ev.getDate() + 1);
+  const y = ev.getFullYear();
+  const m = String(ev.getMonth() + 1).padStart(2, '0');
+  const day = String(ev.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** API の deadline ISO を datetime-local 用 YYYY-MM-DDTHH:mm に変換 */
+function isoToDatetimeLocal(iso){
+  if(!iso) return '';
+  const s = String(iso).trim();
+  const m = s.match(/^(\\d{4})-(\\d{2})-(\\d{2})[T ](\\d{2}):(\\d{2})/);
+  if(m) return m[1] + '-' + m[2] + '-' + m[3] + 'T' + m[4] + ':' + m[5];
+  const d = new Date(s);
+  if(isNaN(d.getTime())) return '';
+  return fmtIsoLocal(d);
+}
+
+function fillEditEventCoordinatorSelect(selectedNum){
+  const sel = document.getElementById('editEventCoordinator');
+  if(!sel) return;
+  const cur = selectedNum != null && selectedNum !== '' && Number.isFinite(Number(selectedNum)) ? String(selectedNum) : '';
+  sel.innerHTML = '';
+  const o0 = document.createElement('option');
+  o0.value = '';
+  o0.textContent = '（未設定）';
+  sel.appendChild(o0);
+  const sorted = (__membersCache || []).slice().sort(function(a,b){ return Number(a.member_number) - Number(b.member_number); });
+  sorted.forEach(function(m){
+    const o = document.createElement('option');
+    o.value = String(m.member_number);
+    const ja = String(m.name_ja || '').trim();
+    o.textContent = ja ? ('#' + m.member_number + ' ' + ja) : ('#' + m.member_number);
+    sel.appendChild(o);
+  });
+  sel.value = cur && Array.from(sel.options).some(function(x){ return x.value === cur; }) ? cur : '';
+}
+
+function openEditEventModal(){
+  const c = selectedAdminEventCol();
+  if(!c){
+    clearAdminManageFeedback();
+    setAdminManageFeedback('イベントを選択してください。', true);
+    showNoticePopup('管理タブでイベントを選択してください。');
+    return;
+  }
+  const ev = (__eventsCache || []).find(x => Number(x.event_col) === Number(c));
+  if(!ev){
+    clearAdminManageFeedback();
+    setAdminManageFeedback('イベント情報がありません。再読込を試してください。', true);
+    showNoticePopup('選択したイベントの情報がありません。イベント再読込を試してください。');
+    return;
+  }
+  const title = document.getElementById('editEventTitle');
+  const dlIn = document.getElementById('editEventDeadline');
+  const seats = document.getElementById('editEventSeats');
+  const ph = document.getElementById('editEventPhase');
+  const st = document.getElementById('editEventStatus');
+  const skip = document.getElementById('editSkipStatusAutomation');
+  if(!title || !dlIn || !seats || !ph || !st || !skip) return;
+  title.value = ev.title || '';
+  dlIn.value = isoToDatetimeLocal(ev.deadline);
+  seats.value = String(ev.seats != null ? ev.seats : '');
+  ph.value = String(ev.phase != null ? ev.phase : 1);
+  const rawSt = String(ev.status || 'collecting');
+  st.value = rawSt;
+  if(!Array.from(st.options).some(o => o.value === rawSt)){
+    st.value = 'collecting';
+  }
+  skip.checked = !!ev.skip_status_automation;
+  fillEditEventCoordinatorSelect(ev.coordinator_member_number);
+  clearEditEventFeedback();
+  document.getElementById('editEventModalBackdrop').classList.add('active');
+}
+
+function closeEditEventModal(_cancel){
+  const el = document.getElementById('editEventModalBackdrop');
+  if(el) el.classList.remove('active');
+  clearEditEventFeedback();
+}
+
+async function saveEditEvent(){
+  clearEditEventFeedback();
+  const c = selectedAdminEventCol();
+  if(!c){
+    setEditEventFeedback('イベントを選択してください。', true);
+    showNoticePopup('管理タブでイベントを選択してください。');
+    return;
+  }
+  const title = document.getElementById('editEventTitle').value.trim();
+  const seats = Number(document.getElementById('editEventSeats').value);
+  const deadline = document.getElementById('editEventDeadline').value;
+  const phase = Number(document.getElementById('editEventPhase').value);
+  const status = document.getElementById('editEventStatus').value;
+  const skip_status_automation = !!document.getElementById('editSkipStatusAutomation').checked;
+  const coordSel = document.getElementById('editEventCoordinator');
+  let coordinator_member_number = null;
+  if(coordSel && coordSel.value !== ''){
+    coordinator_member_number = Number(coordSel.value);
+    if(!Number.isFinite(coordinator_member_number)){
+      setEditEventFeedback('取り纏め役を確認してください。', true);
+      showNoticePopup('取り纏め役を確認してください。');
+      return;
+    }
+  }
+  if(!title || !deadline || !Number.isFinite(seats) || seats <= 0 || !Number.isFinite(phase)){
+    setEditEventFeedback('イベント名・枠数・締切・フェーズを確認してください。', true);
+    showNoticePopup('イベント名・枠数・締切・フェーズを確認してください。');
+    return;
+  }
+  setEditEventFeedback('保存中…', false, 'pending');
+  let res;
+  try {
+    res = await req(`/events/${c}`, 'PATCH', {
+      title,
+      seats,
+      deadline_iso: deadline,
+      phase,
+      status,
+      skip_status_automation,
+      coordinator_member_number,
+    });
+  } catch (fetchErr) {
+    clearEditEventFeedback();
+    const msg = fetchErr && fetchErr.message ? fetchErr.message : String(fetchErr);
+    setEditEventFeedback('修正に失敗: ' + msg, true);
+    showNoticePopup('修正に失敗しました: ' + msg);
+    return;
+  }
+  if (res && res._httpStatus && res._httpStatus >= 400) {
+    clearEditEventFeedback();
+    const msg2 = (res && res.detail) ? (typeof res.detail === 'string' ? res.detail : JSON.stringify(res.detail)) : '';
+    setEditEventFeedback('修正に失敗: ' + msg2, true);
+    showNoticePopup('修正に失敗しました: ' + msg2);
+    return;
+  }
+  try{
+    const ok = await listEvents();
+    const sel = document.getElementById('adminEventSelect');
+    if(sel){
+      sel.value = String(c);
+      refreshAdminButtons();
+    }
+    clearEditEventFeedback();
+    if(!ok){
+      setAdminManageFeedback('保存できましたが一覧の再読込に失敗しました。', true);
+      showNoticePopup('保存はできましたが一覧の再読込に失敗しました。ページを再読み込みしてください。');
+    } else {
+      showNoticePopup('イベントを更新しました。');
+    }
+  } catch(e2){
+    clearEditEventFeedback();
+    const em = e2 && e2.message ? e2.message : String(e2);
+    setAdminManageFeedback('再読込に失敗: ' + em, true);
+    showNoticePopup('保存後の再読込に失敗しました: ' + em);
+  }
+  closeEditEventModal();
+}
+
+function regaliaAuthHeaders(base){
+  const h = base && typeof base === 'object' ? Object.assign({}, base) : {};
+  if(__idToken){
+    h['Authorization'] = 'Bearer ' + __idToken;
+  } else if(typeof __regaliaDevSecret === 'string' && __regaliaDevSecret.length > 0 && window.__REGALIA_DEV_AUTH_OK__){
+    h['Authorization'] = 'Bearer REGALIA_DEV';
+    h['X-Regalia-Dev-Secret'] = __regaliaDevSecret;
+  }
+  return h;
+}
+
+function regaliaParseApiJsonBody_(t, raiseOnError, httpStatus) {
+  var j;
+  try { j = JSON.parse(t); } catch(_e) { if (raiseOnError) throw new Error(t || 'parse error'); return t; }
+  if (j && typeof j._httpStatus === 'number' && j._httpStatus >= 400) {
+    var msg = (typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail != null ? j.detail : j));
+    if (raiseOnError) throw new Error(msg);
+    return j;
+  }
+  if (httpStatus && !httpStatus.ok && raiseOnError) {
+    var d = (j && j.detail) ? (typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail)) : t;
+    throw new Error(d || ('HTTP ' + httpStatus));
+  }
+  return j;
+}
+
+async function req(url, method='GET', body=null, raiseOnError=false){
+  if (window.__REGALIA_GAS__) {
+    const p = (url || '').replace(/^\//, '');
+    const postBody = { _path: p, _http: method, id_token: __idToken || '' };
+    if (window.__REGALIA_DEV_AUTH_OK__ && __regaliaDevSecret) { postBody.x_regalia_dev_secret = __regaliaDevSecret; }
+    if (body && typeof body === 'object') {
+      Object.keys(body).forEach(function (k) { if (k !== '_path' && k !== '_http') postBody[k] = body[k]; });
+    } else if (body && typeof body === 'string') {
+      try { const j = JSON.parse(body); Object.assign(postBody, j); } catch(_e) {}
+    }
+    const b = (typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__ : '').split('?')[0];
+    const r2 = await fetch(b, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(postBody) });
+    const t2 = await r2.text();
+    return regaliaParseApiJsonBody_(t2, raiseOnError, { ok: r2.ok });
+  }
+  const opt = { method, headers: regaliaAuthHeaders({ 'Content-Type': 'application/json' }) };
+  if(body) opt.body = JSON.stringify(body);
+  const r = await fetch(regaliaApiUrl(url), opt);
+  const t = await r.text();
+  if(!r.ok && raiseOnError){
+    let detail = t;
+    try{ const j = JSON.parse(t); if (j && typeof j === 'object' && j.detail) detail = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail);
+    } catch(_e) {}
+    throw new Error(detail || ('HTTP ' + r.status));
+  }
+  try { return JSON.parse(t); } catch(_parseErr) { return t; }
+}
+
+function getLiffId(){
+  const v = (window.__REGALIA_LIFF_ID__ || '').trim();
+  return v;
+}
+
+function loadLiffSdk(){
+  return new Promise(function(resolve, reject){
+    if(window.liff && typeof window.liff.init === 'function'){
+      resolve();
+      return;
+    }
+    const old = document.getElementById('line-liff-sdk');
+    if(old){
+      old.addEventListener('load', function(){ resolve(); }, { once: true });
+      old.addEventListener('error', function(){ reject(new Error('LIFF SDK load failed')); }, { once: true });
+      return;
+    }
+    const s = document.createElement('script');
+    s.id = 'line-liff-sdk';
+    s.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+    s.async = true;
+    s.onload = function(){ resolve(); };
+    s.onerror = function(){ reject(new Error('LIFF SDK load failed')); };
+    document.head.appendChild(s);
+  });
+}
+
+async function ensureLiffIdentity(){
+  __regaliaDevSecret = '';
+  __idToken = '';
+  if(window.__REGALIA_DEV_AUTH_OK__){
+    __regaliaDevSecret = localStorage.getItem('regalia_dev_secret') || '';
+    if(__regaliaDevSecret){
+      return;
+    }
+  }
+  const liffId = getLiffId();
+  if(!liffId){
+    var hint = window.__REGALIA_DEV_AUTH_OK__
+      ? 'LIFF ID が未設定です。LINE を使う場合は .env に LINE_LIFF_ID を設定してください。ローカルだけの場合は Console で localStorage.setItem("regalia_dev_secret", "<.envのREGALIA_DEV_AUTH_SECRET>") を実行してから再読み込みしてください。'
+      : 'LIFF ID が未設定です（LINE_LIFF_ID を設定してください）';
+    throw new Error(hint);
+  }
+  await loadLiffSdk();
+  await window.liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
+  if(!window.liff.isLoggedIn()){
+    window.liff.login({ redirectUri: regaliaLiffRedirectUri() });
+    return;
+  }
+  const token = window.liff.getIDToken();
+  if(!token){
+    throw new Error('LIFF id_token を取得できませんでした');
+  }
+  __idToken = token;
+}
+
+function hasRegaliaAuth(){
+  if(__idToken) return true;
+  if(window.__REGALIA_DEV_AUTH_OK__ && typeof __regaliaDevSecret === 'string' && __regaliaDevSecret.length > 0) return true;
+  return false;
+}
+
+function selectedAdminEventCol(){
+  const v = Number(document.getElementById('adminEventSelect').value);
+  if(!v){
+    out('イベントを選択してください。');
+    return null;
+  }
+  return v;
+}
+
+/** 1〜4: 第1回エントリー中 → 第1回確定 → 第2回募集開始 → 第2回確定 */
+function resolveEventWorkflowStep(ev){
+  if(!ev) return { step: 0, note: '' };
+  const st = String(ev.status || 'unknown');
+  const ph = Number(ev.phase || 1);
+  if(st === 'collecting') return { step: 1, note: '' };
+  if(st === 'grace_phase1') return { step: 1, note: '（締切後1時間の猶予中）' };
+  if(st === 'phase1_confirmed') return { step: 2, note: '' };
+  if(st === 'collecting_phase2') return { step: 3, note: '' };
+  if(st === 'completed'){
+    if(ph >= 2) return { step: 4, note: '' };
+    return { step: 2, note: '（第1回で満枠・完了）' };
+  }
+  if(st === 'unknown'){
+    return { step: 0, note: '（ヘッダ解析できず。イベント再読込を試してください）' };
+  }
+  return { step: 0, note: `（status=${st}）` };
+}
+
+function currentStatusText(ev){
+  const { step, note } = resolveEventWorkflowStep(ev);
+  const labels = ['', '第1回エントリー中', '第1回確定', '第2回募集開始', '第2回確定'];
+  if(step <= 0) return '不明' + (note ? ' ' + note : '');
+  return labels[step] + (note ? ' ' + note : '');
+}
+
+function refreshEventStatusUI(){
+  const currentEl = document.getElementById('adminEventStatusCurrent');
+  const metaEl = document.getElementById('adminEventStatusMeta');
+  if(!currentEl || !metaEl) return;
+
+  const c = Number(document.getElementById('adminEventSelect').value);
+  const ev = (__eventsCache || []).find(x => Number(x.event_col) === Number(c));
+
+  if(!ev){
+    currentEl.textContent = '—';
+    metaEl.textContent = 'イベントを選択してください。';
+    return;
+  }
+
+  currentEl.textContent = currentStatusText(ev);
+  const rem = Number(ev.remaining_seats != null ? ev.remaining_seats : 0);
+  const wc = Number(ev.winner_count != null ? ev.winner_count : 0);
+  const lines = [
+    `締切(ISO): ${ev.deadline || '—'}`,
+    `枠数: ${ev.seats}`,
+    `当選者数: ${wc}`,
+    `残枠: ${rem}`,
+    `phase: ${ev.phase}`,
+    `status: ${ev.status}`,
+  ];
+  if(ev.skip_status_automation){
+    lines.push('自動ステータス更新: オフ（手動運用）');
+  }
+  if(ev.coordinator_member_number != null && ev.coordinator_member_number !== ''){
+    const ja = String(ev.coordinator_name_ja || '').trim();
+    lines.push(ja ? ('取り纏め役: #' + ev.coordinator_member_number + ' ' + ja) : ('取り纏め役: #' + ev.coordinator_member_number));
+  } else {
+    lines.push('取り纏め役: （未設定）');
+  }
+  if(ev.created_by_member_number != null && ev.created_by_member_number !== ''){
+    const cbn = Number(ev.created_by_member_number);
+    const cja = String(ev.created_by_name_ja || '').trim();
+    lines.push(cja ? ('作成: #' + cbn + ' ' + cja) : ('作成: #' + cbn));
+  }
+  metaEl.textContent = lines.join(String.fromCharCode(10));
+}
+
+function refreshAdminButtons(){
+  const c = Number(document.getElementById('adminEventSelect').value);
+  const ev = (__eventsCache || []).find(x => Number(x.event_col) === Number(c));
+
+  const btnDelete = document.getElementById('btnDeleteEvent');
+  const btnConfirm = document.getElementById('btnConfirmPhase1');
+  const btnOpenPhase2 = document.getElementById('btnOpenPhase2');
+  const btnEntryRequestMsg = document.getElementById('btnEntryRequestMsg');
+  const btnResultNotifyMsg = document.getElementById('btnResultNotifyMsg');
+  const btnEditEvent = document.getElementById('btnEditEvent');
+
+  if(!ev){
+    if(btnDelete) btnDelete.disabled = true;
+    if(btnConfirm) btnConfirm.disabled = true;
+    if(btnOpenPhase2) btnOpenPhase2.disabled = true;
+    if(btnEntryRequestMsg) btnEntryRequestMsg.disabled = true;
+    if(btnResultNotifyMsg) btnResultNotifyMsg.disabled = true;
+    if(btnEditEvent) btnEditEvent.disabled = true;
+    refreshEventStatusUI();
+    const entEl = document.getElementById('adminEventEntrantsList');
+    if(entEl) entEl.textContent = 'イベントを選択してください。';
+    return;
+  }
+
+  // 結果が出ている（第1回確定以降）なら削除と第1回操作を無効化
+  const hasResult = (ev.status === 'phase1_confirmed') || (ev.status === 'completed') || (ev.status === 'collecting_phase2');
+  if(btnDelete) btnDelete.disabled = hasResult;
+  if(btnConfirm) btnConfirm.disabled = hasResult;
+
+  // 第2回募集開始（通常は自動）。手動ボタンは後方互換で残す
+  const remaining = Number(ev.remaining_seats != null ? ev.remaining_seats : 0);
+  const titleBlob = String(ev.title || '') + ' ' + String(ev.header || '');
+  const isTRM = /TRM/i.test(titleBlob);
+  const canManualOpenPhase2 =
+    remaining > 0
+    && !isTRM
+    && ev.status !== 'collecting_phase2'
+    && (ev.status === 'phase1_confirmed' || ev.status === 'completed');
+  if(btnOpenPhase2) btnOpenPhase2.disabled = !canManualOpenPhase2;
+
+  // 参加者向け：第1回募集中・猶予中・第2回募集中
+  const isCollecting = (ev.status === 'collecting') || (ev.status === 'grace_phase1') || (ev.status === 'collecting_phase2');
+  if(btnEntryRequestMsg) btnEntryRequestMsg.disabled = !isCollecting;
+
+  // 結果通知：残枠が 0 のときだけ（確定結果）
+  if(btnResultNotifyMsg) btnResultNotifyMsg.disabled = remaining > 0;
+
+  if(btnEditEvent) btnEditEvent.disabled = false;
+
+  refreshEventStatusUI();
+  void refreshEventEntrants();
+}
+
+async function refreshEventEntrants(){
+  const el = document.getElementById('adminEventEntrantsList');
+  if(!el) return;
+  const c = Number(document.getElementById('adminEventSelect').value);
+  if(!c){
+    el.textContent = 'イベントを選択してください。';
+    return;
+  }
+  el.textContent = '読み込み中…';
+  try{
+    const data = await req(`/events/${c}/entrants`);
+    const arr = data.entrants || [];
+    el.textContent = '';
+    if(!arr.length){
+      el.textContent = '（エントリー履歴があるメンバーはいません）';
+      return;
+    }
+    const ul = document.createElement('ul');
+    ul.className = 'entrants-ul';
+    arr.forEach(x => {
+      const li = document.createElement('li');
+      const main = document.createElement('div');
+      main.textContent = '#' + x.member_number + ' ' + (x.name_ja || '');
+      const sum = document.createElement('div');
+      sum.className = 'entrants-summary';
+      sum.textContent = x.summary || '';
+      li.appendChild(main);
+      li.appendChild(sum);
+      ul.appendChild(li);
+    });
+    el.appendChild(ul);
+  } catch(e){
+    el.textContent = 'エントリ一覧の取得に失敗しました。';
+  }
+}
+
+async function refreshEntryEntrants(){
+  const el = document.getElementById('entryCurrentEntrantsList');
+  if(!el) return;
+  const es = document.getElementById('eventSelect');
+  if(!es){
+    el.textContent = '画面の準備ができていません。再読み込みしてください。';
+    return;
+  }
+  const c = Number(es.value);
+  if(!c){
+    el.textContent = 'イベントを選択してください。';
+    return;
+  }
+  el.textContent = '読み込み中…';
+  try{
+    const data = await req(`/events/${c}/entrants`);
+    const arr = data.entrants || [];
+    el.textContent = '';
+    if(!arr.length){
+      el.textContent = '（エントリー履歴があるメンバーはいません）';
+      return;
+    }
+    const ul = document.createElement('ul');
+    ul.className = 'entrants-ul';
+    arr.forEach(x => {
+      const li = document.createElement('li');
+      const main = document.createElement('div');
+      main.textContent = '#' + x.member_number + ' ' + (x.name_ja || '');
+      const sum = document.createElement('div');
+      sum.className = 'entrants-summary';
+      sum.textContent = x.summary || '';
+      li.appendChild(main);
+      li.appendChild(sum);
+      ul.appendChild(li);
+    });
+    el.appendChild(ul);
+  } catch(e){
+    el.textContent = 'エントリ一覧の取得に失敗しました。';
+  }
+}
+
+async function listEvents(){
+  const eventSelect = document.getElementById('eventSelect');
+  const adminEventSelect = document.getElementById('adminEventSelect');
+  if(!eventSelect || !adminEventSelect){
+    out('画面の準備ができていません（select要素なし）。再読込してください。');
+    return false;
+  }
+  let raw = null;
+  let eventSource = 'none';
+  const bootEl = document.getElementById('regalia-boot-events');
+  if(bootEl && bootEl.textContent){
+    try{
+      raw = JSON.parse(bootEl.textContent);
+      eventSource = 'html_boot';
+      bootEl.parentNode.removeChild(bootEl);
+    } catch(parseErr){
+      raw = null;
+      if(typeof console !== 'undefined' && console.warn){
+        console.warn('[regalia] listEvents: HTML埋め込みJSONのparse失敗', parseErr);
+      }
+    }
+  }
+  if(raw == null){
+    try{
+      raw = await req('/events');
+      eventSource = 'fetch';
+    } catch(err){
+      __eventsCache = [];
+      out('イベント一覧の取得に失敗: ' + (err && err.message ? err.message : String(err)));
+      eventSelect.innerHTML = '';
+      adminEventSelect.innerHTML = '';
+      try{ populateHistorySelects(); } catch(_ph){}
+      refreshAdminButtons();
+      try{ refreshAuthRoleBadges(); } catch(_rb){}
+      try{
+        if(__authMe){
+          applyAuthGate(!!__authMe.registered, !!__authMe.is_admin);
+        }
+      } catch(_ag){}
+      return false;
+    }
+  }
+  const events = Array.isArray(raw) ? raw : [];
+  if(typeof console !== 'undefined' && console.info){
+    console.info('[regalia] listEvents: source=' + eventSource + ' rawIsArray=' + Array.isArray(raw) + ' eventsLength=' + events.length);
+  }
+  if(!Array.isArray(raw)){
+    out('イベント一覧が配列ではありません: ' + (typeof raw === 'string' ? raw : JSON.stringify(raw)));
+  }
+  __eventsCache = events;
+
+  try{
+    const optsEntry = [];
+    const optsAdmin = [];
+    events.forEach(e => {
+      if(isEventOpenForEntry(e)){
+        const opt1 = document.createElement('option');
+        opt1.value = String(e.event_col);
+        opt1.textContent = formatEventLabel(e);
+        optsEntry.push(opt1);
+      }
+      const opt2 = document.createElement('option');
+      opt2.value = String(e.event_col);
+      opt2.textContent = formatEventLabel(e);
+      optsAdmin.push(opt2);
+    });
+    eventSelect.innerHTML = '';
+    optsEntry.forEach(o => eventSelect.appendChild(o));
+    adminEventSelect.innerHTML = '';
+    optsAdmin.forEach(o => adminEventSelect.appendChild(o));
+    try{
+      out('イベント一覧 ' + events.length + '件（source=' + eventSource + '）');
+    } catch(_outErr){
+      if(typeof console !== 'undefined' && console.warn){
+        console.warn('[regalia] out() に失敗', _outErr);
+      }
+    }
+    const hEntry = document.getElementById('entryEventEmptyHint');
+    const hAdmin = document.getElementById('adminEventEmptyHint');
+    const emptyMsg = 'イベントが0件です。管理Excel「管理sheet」のF列以降（1行目にヘッダ）を確認するか、MASTER_SHEET_PATH を確認してください。';
+    const entryEmptyMsg = '募集中のイベントがありません。';
+    if(hEntry){
+      if(optsEntry.length === 0){ hEntry.style.display = 'block'; hEntry.textContent = entryEmptyMsg; }
+      else { hEntry.style.display = 'none'; hEntry.textContent = ''; }
+    }
+    if(hAdmin){
+      if(events.length === 0){ hAdmin.style.display = 'block'; hAdmin.textContent = emptyMsg; }
+      else { hAdmin.style.display = 'none'; hAdmin.textContent = ''; }
+    }
+    try{ populateHistorySelects(); } catch(_ph){}
+    refreshAdminButtons();
+    void refreshEntryEntrants();
+    try{ updateEntryCoordinatorLine(); } catch(_c){}
+    try{ updateProxyEntryMemberBlock(); } catch(_p){}
+    try{ refreshAuthRoleBadges(); } catch(_rb){}
+    try{
+      if(__authMe){
+        applyAuthGate(!!__authMe.registered, !!__authMe.is_admin);
+      }
+    } catch(_ag){}
+    return true;
+  } catch(err){
+    out('イベントプルダウン更新でエラー: ' + (err && err.message ? err.message : String(err)));
+    return false;
+  }
+}
+
+async function adminReloadEvents(){
+  clearAdminManageFeedback();
+  setAdminManageFeedback('イベント一覧を読み込み中…', false, 'pending');
+  const ok = await listEvents();
+  clearAdminManageFeedback();
+  if(ok){
+    showNoticePopup('イベント一覧を更新しました。');
+  } else {
+    setAdminManageFeedback('イベント一覧の更新に失敗しました。', true);
+    showNoticePopup('イベント一覧の更新に失敗しました。');
+  }
+}
+
+async function createEvent(){
+  clearAdminCreateFeedback();
+  try {
+    const title = document.getElementById('title').value;
+    const seats = Number(document.getElementById('seats').value);
+    const deadline = document.getElementById('deadline').value;
+    if(!title || !deadline || !Number.isFinite(seats) || seats <= 0){
+      setAdminCreateFeedback('入力不足: イベント名・枠数・締切を確認してください。', true);
+      showNoticePopup('入力不足: イベント名・枠数・締切を確認してください。');
+      return;
+    }
+    setAdminCreateFeedback('イベント作成中…', false, 'pending');
+    await req('/events', 'POST', {
+      title,
+      seats,
+      deadline_iso: deadline
+    }, true);
+    let reloadOk = true;
+    try {
+      reloadOk = await listEvents();
+    } catch (e2) {
+      reloadOk = false;
+    }
+    clearAdminCreateFeedback();
+    if(!reloadOk){
+      setAdminCreateFeedback('作成できましたが一覧の再読込に失敗しました。', true);
+      showNoticePopup('作成はできましたが一覧の再読込に失敗しました。ページを再読み込みしてください。');
+    } else {
+      showNoticePopup('イベントを作成しました。');
+    }
+  } catch (e) {
+    clearAdminCreateFeedback();
+    const em = e && e.message ? e.message : String(e);
+    setAdminCreateFeedback('作成に失敗: ' + em, true);
+    showNoticePopup('作成に失敗しました: ' + em);
+  }
+}
+
+function onCreateEventClick(ev){
+  if(ev) ev.preventDefault();
+  void createEvent();
+  return false;
+}
+async function confirmPhase1(){
+  const c = selectedAdminEventCol();
+  if(!c){
+    clearAdminManageFeedback();
+    setAdminManageFeedback('イベントを選択してください。', true);
+    showNoticePopup('管理タブでイベントを選択してください。');
+    return;
+  }
+  clearAdminManageFeedback();
+  setAdminManageFeedback('第1回確定処理中…', false, 'pending');
+  try{
+    await req(`/events/${c}/confirm-phase1`, 'POST', null, true);
+    await listEvents();
+    clearAdminManageFeedback();
+    showNoticePopup('第1回を確定しました。');
+  } catch(e){
+    clearAdminManageFeedback();
+    const em = e && e.message ? e.message : String(e);
+    setAdminManageFeedback('第1回確定に失敗: ' + em, true);
+    showNoticePopup('第1回確定に失敗しました: ' + em);
+  }
+}
+async function openPhase2(){
+  const c = selectedAdminEventCol();
+  if(!c){
+    clearAdminManageFeedback();
+    setAdminManageFeedback('イベントを選択してください。', true);
+    showNoticePopup('管理タブでイベントを選択してください。');
+    return;
+  }
+  clearAdminManageFeedback();
+  setAdminManageFeedback('第2回募集開始処理中…', false, 'pending');
+  try{
+    await req(`/events/${c}/open-phase2`, 'POST', {}, true);
+    await listEvents();
+    clearAdminManageFeedback();
+    showNoticePopup('第2回募集を開始しました。');
+  } catch(e){
+    clearAdminManageFeedback();
+    const em = e && e.message ? e.message : String(e);
+    setAdminManageFeedback('第2回募集開始に失敗: ' + em, true);
+    showNoticePopup('第2回募集開始に失敗しました: ' + em);
+  }
+}
+async function shareMsg(){
+  const c = selectedAdminEventCol();
+  if(!c){
+    clearAdminManageFeedback();
+    setAdminManageFeedback('イベントを選択してください。', true);
+    showNoticePopup('管理タブでイベントを選択してください。');
+    return;
+  }
+  clearAdminManageFeedback();
+  setAdminManageFeedback('結果通知文面を取得中…', false, 'pending');
+  try{
+    const res = await req(`/events/${c}/share-message`, 'GET', null, true);
+    const msg = (res && res.message) ? res.message : (typeof res === 'string' ? res : String(res));
+    document.getElementById('shareMessageText').value = msg;
+    document.getElementById('shareModalBackdrop').classList.add('active');
+    clearAdminManageFeedback();
+  } catch(e){
+    clearAdminManageFeedback();
+    const em = e && e.message ? e.message : String(e);
+    setAdminManageFeedback('文面の取得に失敗: ' + em, true);
+    showNoticePopup('文面の取得に失敗しました: ' + em);
+  }
+}
+
+async function entryRequestMsg(){
+  const c = selectedAdminEventCol();
+  if(!c){
+    clearAdminManageFeedback();
+    setAdminManageFeedback('イベントを選択してください。', true);
+    showNoticePopup('管理タブでイベントを選択してください。');
+    return;
+  }
+  clearAdminManageFeedback();
+  setAdminManageFeedback('エントリー依頼文面を取得中…', false, 'pending');
+  try{
+    const res = await req(`/events/${c}/entry-message`, 'GET', null, true);
+    const msg = (res && res.message) ? res.message : (typeof res === 'string' ? res : String(res));
+    document.getElementById('shareMessageText').value = msg;
+    document.getElementById('shareModalBackdrop').classList.add('active');
+    clearAdminManageFeedback();
+  } catch(e){
+    clearAdminManageFeedback();
+    const em = e && e.message ? e.message : String(e);
+    setAdminManageFeedback('文面の取得に失敗: ' + em, true);
+    showNoticePopup('文面の取得に失敗しました: ' + em);
+  }
+}
+
+async function deleteEvent(){
+  const c = selectedAdminEventCol();
+  if(!c){
+    clearAdminManageFeedback();
+    setAdminManageFeedback('イベントを選択してください。', true);
+    showNoticePopup('管理タブでイベントを選択してください。');
+    return;
+  }
+  const ok = confirm('このイベントを削除します。よろしいですか？');
+  if(!ok) return;
+  clearAdminManageFeedback();
+  setAdminManageFeedback('イベント削除中…', false, 'pending');
+  try{
+    await req(`/events/${c}`, 'DELETE', null, true);
+    await listEvents();
+    clearAdminManageFeedback();
+    showNoticePopup('イベントを削除しました。');
+  } catch(e){
+    clearAdminManageFeedback();
+    const em = e && e.message ? e.message : String(e);
+    setAdminManageFeedback('削除に失敗: ' + em, true);
+    showNoticePopup('削除に失敗しました: ' + em);
+  }
+}
+
+function closeShareModal(_cancel){
+  document.getElementById('shareModalBackdrop').classList.remove('active');
+}
+
+async function copyShareMessage(){
+  const text = document.getElementById('shareMessageText').value || '';
+  if(!text){
+    showNoticePopup('コピーする文面がありません。');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    showNoticePopup('コピーしました。');
+  } catch (e) {
+    // クリップボードAPIが使えない環境向けのフォールバック
+    const ta = document.getElementById('shareMessageText');
+    ta.focus();
+    ta.select();
+    showNoticePopup('文面を選択しました。Ctrl+Cでコピーしてください。');
+  }
+}
+
+async function loadEntryUI(){
+  await ensureLiffIdentity();
+  if(!hasRegaliaAuth()){
+    return;
+  }
+  try{
+    const me = await req('/auth/me', 'GET', null, true);
+    if(!me || !me.registered){
+      window.location.replace(regaliaApiUrl('/register'));
+      return;
+    }
+    __authMe = me;
+  } catch(e){
+    out('ログイン確認に失敗: ' + (e && e.message ? e.message : String(e)));
+    return;
+  }
+  // イベントは先に取得（取りまとめ役メニュー判定に __eventsCache が必要）
+  await listEvents();
+  try{
+    renderAuthBanner();
+    applyAuthGate(!!__authMe.registered, !!__authMe.is_admin);
+  } catch(_earlyUi){}
+  // イベントは /members より先に埋める（/members が遅延・ハングしてもプルダウンが空のままにならない）
+  try{
+    const members = await req('/members');
+    __membersCache = Array.isArray(members) ? members : [];
+    if(!Array.isArray(members)){
+      out('メンバー一覧が配列ではありません: ' + (typeof members === 'string' ? members : JSON.stringify(members)));
+    }
+  } catch(err){
+    __membersCache = [];
+    out('メンバー一覧の取得に失敗: ' + (err && err.message ? err.message : String(err)));
+  }
+  void refreshCumulativePane();
+  await refreshAuthMe();
+}
+
+async function loadRegisterOnlyUI(){
+  await ensureLiffIdentity();
+  var reBoot = document.getElementById('registerBootError');
+  if(reBoot){ reBoot.style.display = 'none'; reBoot.textContent = ''; }
+  if(!hasRegaliaAuth()){
+    if(reBoot){
+      reBoot.textContent = 'LINEログインへ進みます。完了後もこの画面が変わらない場合は再読み込みしてください。';
+      reBoot.style.display = 'block';
+    }
+    return;
+  }
+  try{
+    const me = await req('/auth/me', 'GET', null, true);
+    if(me && me.registered){
+      window.location.replace(regaliaApiUrl('/'));
+      return;
+    }
+    __authMe = me;
+  } catch(e){
+    out('ログイン確認に失敗: ' + (e && e.message ? e.message : String(e)));
+    return;
+  }
+  try{
+    const members = await req('/members');
+    __membersCache = Array.isArray(members) ? members : [];
+    if(!Array.isArray(members)){
+      out('メンバー一覧が配列ではありません: ' + (typeof members === 'string' ? members : JSON.stringify(members)));
+    }
+  } catch(err){
+    __membersCache = [];
+    out('メンバー一覧の取得に失敗: ' + (err && err.message ? err.message : String(err)));
+  }
+  bindRegisterInputs();
+  updateRegisterMemberEmptyHint();
+  updateRegisterSelectedPill();
+  refreshRegisterPageHints();
+}
+
+function registerBackLabel(memberNumber){
+  const n = Number(memberNumber);
+  if(!Number.isFinite(n)) return '—';
+  return '背番号 ' + n;
+}
+
+function setRegisterFeedback(msg, isError){
+  const el = document.getElementById('registerFeedback');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.style.color = isError ? '#fca5a5' : '#6ee7b7';
+}
+
+/** 締切前（Open）のイベントに限る。当選履歴の「過去」と同じ締切判定。 */
+function isEventDeadlineStillOpenForCoord(ev){
+  if(!ev) return false;
+  const dl = ev.deadline;
+  if(dl == null || dl === '') return false;
+  const t = new Date(dl).getTime();
+  if(isNaN(t)) return false;
+  return t >= Date.now();
+}
+
+/** いずれかの Open イベントで取り纏め役のとき（バッジ・メニュー用） */
+function isUserCoordinatorForAnyOpenEvent(){
+  if(!__authMe || !__authMe.registered) return false;
+  const mn = Number(__authMe.member_number);
+  if(!Number.isFinite(mn)) return false;
+  const evs = __eventsCache || [];
+  for(let i = 0; i < evs.length; i++){
+    const ev = evs[i];
+    if(ev.coordinator_member_number == null || ev.coordinator_member_number === '') continue;
+    if(Number(ev.coordinator_member_number) !== mn) continue;
+    if(isEventDeadlineStillOpenForCoord(ev)) return true;
+  }
+  return false;
+}
+
+/** Openイベントの取り纏め役、または前回確定で指名された「次回取りまとめ役」(members.next_admin) */
+function hasCoordinatorMenuRole(){
+  if(!__authMe || !__authMe.registered) return false;
+  if(isUserCoordinatorForAnyOpenEvent()) return true;
+  return !!__authMe.is_next_coordinator;
+}
+
+function refreshAuthRoleBadges(){
+  const ad = document.getElementById('authRoleAdminBadge');
+  const cd = document.getElementById('authRoleCoordinatorBadge');
+  const tcc = document.getElementById('tabCoordIcoCreate');
+  const tcm = document.getElementById('tabCoordIcoManage');
+  if(!ad || !cd) return;
+  if(!__authMe || !__authMe.registered){
+    ad.style.display = 'none';
+    cd.style.display = 'none';
+    ad.setAttribute('aria-hidden', 'true');
+    cd.setAttribute('aria-hidden', 'true');
+    if(tcc){ tcc.style.display = 'none'; }
+    if(tcm){ tcm.style.display = 'none'; }
+    return;
+  }
+  const isAd = !!__authMe.is_admin;
+  const isCoord = hasCoordinatorMenuRole();
+  ad.style.display = isAd ? 'inline-flex' : 'none';
+  cd.style.display = isCoord ? 'inline-flex' : 'none';
+  ad.setAttribute('aria-hidden', isAd ? 'false' : 'true');
+  cd.setAttribute('aria-hidden', isCoord ? 'false' : 'true');
+  if(tcc){ tcc.style.display = isCoord ? 'inline-flex' : 'none'; }
+  if(tcm){ tcm.style.display = isCoord ? 'inline-flex' : 'none'; }
+}
+
+function renderAuthBanner(){
+  const block = document.getElementById('authBannerBlock');
+  const el = document.getElementById('authLoginBanner');
+  if(!el) return;
+  if(!__authMe || !__authMe.registered){
+    if(block) block.style.display = 'none';
+    el.style.display = 'none';
+    refreshAuthRoleBadges();
+    return;
+  }
+  const relation = String(__authMe.relation_label || __authMe.relation || '').trim();
+  const mja = String(__authMe.member_name_ja || '').trim();
+  const num = __authMe.member_number;
+  const relPart = relation ? '(' + relation + ')' : '';
+  let t = '背番号' + num + (mja ? ' ' + mja : '') + relPart + 'にてログイン中';
+  el.textContent = t;
+  el.style.display = 'inline-flex';
+  el.classList.add('active');
+  if(block) block.style.display = 'block';
+  refreshAuthRoleBadges();
+}
+
+function setEntryActionsEnabled(enabled){
+  const btnEnter = document.querySelector('.entry-actions:not(.proxy-entry-actions) .btn-entry-submit');
+  const btnCancel = document.querySelector('.entry-actions:not(.proxy-entry-actions) .btn-entry-withdraw');
+  const btnPxE = document.getElementById('btnProxyEntry');
+  const btnPxC = document.getElementById('btnProxyCancel');
+  if(btnEnter) btnEnter.disabled = !enabled;
+  if(btnCancel) btnCancel.disabled = !enabled;
+  if(btnPxE) btnPxE.disabled = !enabled;
+  if(btnPxC) btnPxC.disabled = !enabled;
+}
+
+function applyAuthGate(registered, isAdmin){
+  const block = document.getElementById('adminNavBlock');
+  const tabCreate = document.getElementById('tab-admin-create');
+  const tabManage = document.getElementById('tab-admin-manage');
+  const paneCreate = document.getElementById('pane-admin-create');
+  const paneManage = document.getElementById('pane-admin-manage');
+  const masterCell = document.getElementById('adminMasterTabCell');
+  const coordMenu = !!(registered && hasCoordinatorMenuRole());
+  const showAdminRow = !!(registered && (isAdmin || coordMenu));
+  if(masterCell){
+    masterCell.style.display = isAdmin ? 'flex' : 'none';
+  }
+  if(block){
+    block.style.display = showAdminRow ? 'block' : 'none';
+  }
+  function setTabEnabled(el, on){
+    if(!el) return;
+    el.disabled = !on;
+    el.style.opacity = on ? '1' : '0.45';
+    el.style.pointerEvents = on ? 'auto' : 'none';
+  }
+  setTabEnabled(tabCreate, canCreateEvent());
+  setTabEnabled(tabManage, !!(registered && (isAdmin || coordMenu)));
+  if(!showAdminRow){
+    if(paneCreate) paneCreate.classList.remove('active');
+    if(paneManage) paneManage.classList.remove('active');
+    if(tabCreate) tabCreate.classList.remove('active');
+    if(tabManage) tabManage.classList.remove('active');
+    switchTab('entry');
+  } else if(coordMenu && !canCreateEvent()){
+    if(paneCreate && paneCreate.classList.contains('active')){
+      switchTab('admin-manage');
+    }
+    if(tabCreate) tabCreate.classList.remove('active');
+  }
+}
+
+function updateRegisterSelectedPill(){
+  const pill = document.getElementById('registerSelectedMemberPill');
+  if(!pill) return;
+  if(!__registerMemberNumber){
+    pill.textContent = '未選択';
+    pill.classList.remove('active');
+    return;
+  }
+  pill.textContent = registerBackLabel(__registerMemberNumber);
+  pill.classList.add('active');
+}
+
+function updateRegisterMemberEmptyHint(){
+  const hint = document.getElementById('registerMemberEmptyHint');
+  if(!hint) return;
+  const n = (__membersCache || []).length;
+  if(n === 0){
+    hint.style.display = 'block';
+    hint.textContent = 'メンバー一覧が0件です。「背番号を選ぶ」を押しても選べません。管理者にマスタ（DB）の反映を依頼するか、認証・APIエラーを確認してください。';
+  } else {
+    hint.style.display = 'none';
+    hint.textContent = '';
+  }
+}
+
+function renderRegisterMemberModalList(){
+  const list = document.getElementById('registerMemberModalList');
+  if(!list) return;
+  list.innerHTML = '';
+  const sorted = (__membersCache || []).slice().sort((a,b) => Number(a.member_number) - Number(b.member_number));
+  if(sorted.length === 0){
+    const p = document.createElement('p');
+    p.className = 'meta';
+    p.style.color = '#fca5a5';
+    p.style.margin = '0';
+    p.textContent = '背番号の一覧がありません（0件）。サーバにメンバーが登録されていないか、一覧の取得に失敗しています。';
+    list.appendChild(p);
+    return;
+  }
+  sorted.forEach(m => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'member-row' + (Number(m.member_number) === Number(__registerMemberNumber) ? ' active' : '');
+    btn.textContent = registerBackLabel(m.member_number);
+    btn.setAttribute('aria-label', '背番号 ' + m.member_number);
+    btn.onclick = () => {
+      __registerMemberNumber = Number(m.member_number);
+      updateRegisterSelectedPill();
+      closeRegisterMemberPicker();
+      setRegisterFeedback('', false);
+    };
+    list.appendChild(btn);
+  });
+}
+
+function openRegisterMemberPicker(){
+  renderRegisterMemberModalList();
+  const el = document.getElementById('registerMemberModalBackdrop');
+  if(el) el.classList.add('active');
+}
+
+function closeRegisterMemberPicker(){
+  const el = document.getElementById('registerMemberModalBackdrop');
+  if(el) el.classList.remove('active');
+}
+
+function bindRegisterInputs(){
+  const rel = document.getElementById('registerRelation');
+  const row = document.getElementById('registerRelationOtherRow');
+  if(rel && row){
+    rel.addEventListener('change', function(){
+      row.style.display = (rel.value === 'その他') ? 'block' : 'none';
+    });
+    row.style.display = (rel.value === 'その他') ? 'block' : 'none';
+  }
+}
+
+function refreshRegisterPageHints(){
+}
+
+async function refreshAuthMe(){
+  try{
+    __authMe = await req('/auth/me', 'GET', null, true);
+  } catch(e){
+    __authMe = null;
+    try{ updateEntrySelfMemberLine(); } catch(_s){}
+    setEntryFeedback('認証情報の取得に失敗: ' + (e && e.message ? e.message : String(e)), true);
+  }
+  const registered = !!(__authMe && __authMe.registered);
+  const isAdmin = !!(__authMe && __authMe.is_admin);
+  if(!registered && document.documentElement.dataset.regaliaPage === 'index'){
+    window.location.replace(regaliaApiUrl('/register'));
+    return;
+  }
+  try{
+    renderAuthBanner();
+    updateEntrySelfMemberLine();
+    setEntryActionsEnabled(registered);
+    applyAuthGate(registered, isAdmin);
+  } catch(_ui1){}
+  try{
+    updateProxyEntryMemberBlock();
+  } catch(_ui2){}
+  if(!isAdmin){
+    const openCoord = isUserCoordinatorForAnyOpenEvent();
+    const nextNom = !!(__authMe && __authMe.is_next_coordinator);
+    if(openCoord && nextNom){
+      setEntryFeedback('取りまとめ役としてログイン中です（締切前のイベントの管理・代理に加え、次回イベントの取りまとめ役に指名されています）。', false);
+    } else if(openCoord){
+      setEntryFeedback('アクティブなイベントの取りまとめ役としてログイン中です（締切前の該当イベントで代理エントリー・イベント管理が可能）。', false);
+    } else if(nextNom){
+      setEntryFeedback('次回イベントの取りまとめ役に指名されています（新規イベントの作成も可能です）。', false);
+    } else {
+      setEntryFeedback('一般ユーザーとしてログイン中です（イベント作成は管理者または次回取りまとめ役のみ。マスターCSVは管理者のみ）。', false);
+    }
+  } else {
+    clearEntryFeedback();
+  }
+}
+
+async function registerAuth(){
+  setRegisterFeedback('', false);
+  if(!__registerMemberNumber){
+    setRegisterFeedback('背番号を選択してください。', true);
+    return;
+  }
+  const rel = document.getElementById('registerRelation');
+  const other = document.getElementById('registerRelationOther');
+  const relation = rel ? String(rel.value || '') : '';
+  const relationOther = other ? String(other.value || '').trim() : '';
+  if(!relation){
+    setRegisterFeedback('関係を選択してください。', true);
+    return;
+  }
+  if(relation === 'その他' && !relationOther){
+    setRegisterFeedback('その他の内容を入力してください。', true);
+    return;
+  }
+  try{
+    await req('/auth/register', 'POST', {
+      member_number: Number(__registerMemberNumber),
+      relation: relation,
+      relation_other: relationOther || null,
+    }, true);
+    await refreshAuthMe();
+    showEntryResultPopup('登録しました。');
+  } catch(e){
+    setRegisterFeedback('登録失敗: ' + (e && e.message ? e.message : String(e)), true);
+  }
+}
+
+function clearEntryFeedback(){
+  const el = document.getElementById('entryOperationFeedback');
+  if(el){
+    el.textContent = '';
+    el.style.color = '';
+    el.classList.remove('entry-feedback-pending');
+  }
+}
+
+function clearProxyEntryFeedback(){
+  const el = document.getElementById('proxyEntryOperationFeedback');
+  if(el){
+    el.textContent = '';
+    el.style.color = '';
+    el.classList.remove('entry-feedback-pending');
+  }
+}
+
+/** kind: 省略=成功(緑)/失敗(赤), 'pending'=送信中(グレー) */
+function setEntryFeedback(msg, isError, kind){
+  const el = document.getElementById('entryOperationFeedback');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('entry-feedback-pending', kind === 'pending');
+  if(kind === 'pending'){
+    el.style.color = '#94a3b8';
+  } else {
+    el.style.color = isError ? '#fca5a5' : '#6ee7b7';
+  }
+}
+
+/** 代理エントリー／代理取り消しボタン直上のフィードバック（setEntryFeedback と同じ意味） */
+function setProxyEntryFeedback(msg, isError, kind){
+  const el = document.getElementById('proxyEntryOperationFeedback');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('entry-feedback-pending', kind === 'pending');
+  if(kind === 'pending'){
+    el.style.color = '#94a3b8';
+  } else {
+    el.style.color = isError ? '#fca5a5' : '#6ee7b7';
+  }
+}
+
+function showEntryResultPopup(message){
+  const el = document.getElementById('entryResultMessage');
+  const backdrop = document.getElementById('entryResultModalBackdrop');
+  if(el) el.textContent = message;
+  if(backdrop) backdrop.classList.add('active');
+}
+
+function showNoticePopup(message){
+  showEntryResultPopup(message);
+}
+
+function clearAdminCreateFeedback(){
+  const el = document.getElementById('adminCreateOperationFeedback');
+  if(el){
+    el.textContent = '';
+    el.style.color = '';
+    el.classList.remove('entry-feedback-pending');
+  }
+}
+function setAdminCreateFeedback(msg, isError, kind){
+  const el = document.getElementById('adminCreateOperationFeedback');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('entry-feedback-pending', kind === 'pending');
+  if(kind === 'pending'){
+    el.style.color = '#94a3b8';
+  } else {
+    el.style.color = isError ? '#fca5a5' : '#6ee7b7';
+  }
+}
+function clearAdminManageFeedback(){
+  const el = document.getElementById('adminManageOperationFeedback');
+  if(el){
+    el.textContent = '';
+    el.style.color = '';
+    el.classList.remove('entry-feedback-pending');
+  }
+}
+function setAdminManageFeedback(msg, isError, kind){
+  const el = document.getElementById('adminManageOperationFeedback');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('entry-feedback-pending', kind === 'pending');
+  if(kind === 'pending'){
+    el.style.color = '#94a3b8';
+  } else {
+    el.style.color = isError ? '#fca5a5' : '#6ee7b7';
+  }
+}
+function clearEditEventFeedback(){
+  const el = document.getElementById('editEventOperationFeedback');
+  if(el){
+    el.textContent = '';
+    el.style.color = '';
+    el.classList.remove('entry-feedback-pending');
+  }
+}
+function setEditEventFeedback(msg, isError, kind){
+  const el = document.getElementById('editEventOperationFeedback');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('entry-feedback-pending', kind === 'pending');
+  if(kind === 'pending'){
+    el.style.color = '#94a3b8';
+  } else {
+    el.style.color = isError ? '#fca5a5' : '#6ee7b7';
+  }
+}
+function closeEntryResultModal(){
+  const backdrop = document.getElementById('entryResultModalBackdrop');
+  if(backdrop) backdrop.classList.remove('active');
+  if(document.documentElement.dataset.regaliaPage === 'register'){
+    window.location.replace(regaliaApiUrl('/'));
+  }
+}
+
+function updateEntrySelfMemberLine(){
+  const el = document.getElementById('entrySelfMemberLine');
+  if(!el) return;
+  if(!__authMe || !__authMe.registered){
+    el.textContent = '';
+    return;
+  }
+  const num = __authMe.member_number;
+  const mja = String(__authMe.member_name_ja || '').trim();
+  el.textContent = mja ? ('#' + num + ' ' + mja) : ('#' + num);
+}
+
+function updateEntryTargetMemberPill(){
+  const pill = document.getElementById('entryTargetMemberPill');
+  if(!pill) return;
+  const n = __entryTargetMemberSet.size;
+  const showNames = canProxyForSelectedEntryEvent();
+  if(n === 0){
+    pill.textContent = '（代理対象メンバー未選択）';
+    pill.classList.remove('active');
+    return;
+  }
+  const arr = Array.from(__entryTargetMemberSet).sort(function(a,b){ return a - b; });
+  function lbl(x){
+    if(!showNames) return '#' + x;
+    const ja = memberNameJaForNumber(x);
+    return ja ? ('#' + x + ' ' + ja) : ('#' + x);
+  }
+  if(arr.length <= 6){
+    pill.textContent = arr.map(lbl).join(', ');
+  } else {
+    pill.textContent = String(n) + '名選択（' + arr.slice(0, 4).map(lbl).join(', ') + '…）';
+  }
+  pill.classList.add('active');
+}
+
+function memberNameJaForNumber(num){
+  const m = (__membersCache || []).find(function(x){ return Number(x.member_number) === Number(num); });
+  return m ? String(m.name_ja || '').trim() : '';
+}
+
+function isUserCoordinatorForSelectedEvent(){
+  if(!__authMe || !__authMe.registered) return false;
+  const es = document.getElementById('eventSelect');
+  if(!es) return false;
+  const c = Number(es.value);
+  if(!c) return false;
+  const ev = (__eventsCache || []).find(function(x){ return Number(x.event_col) === c; });
+  if(!ev) return false;
+  if(ev.coordinator_member_number == null || ev.coordinator_member_number === '') return false;
+  return Number(__authMe.member_number) === Number(ev.coordinator_member_number);
+}
+
+function canProxyForSelectedEntryEvent(){
+  if(!__authMe || !__authMe.registered) return false;
+  if(__authMe.is_admin) return true;
+  if(!isUserCoordinatorForSelectedEvent()) return false;
+  const es = document.getElementById('eventSelect');
+  const c = es ? Number(es.value) : 0;
+  const ev = (__eventsCache || []).find(function(x){ return Number(x.event_col) === c; });
+  return isEventDeadlineStillOpenForCoord(ev);
+}
+
+function updateProxyEntryRoleIcons(){
+  const pa = document.getElementById('proxyRoleAdminIco');
+  const pc = document.getElementById('proxyRoleCoordinatorIco');
+  if(!pa || !pc) return;
+  const vis = canProxyForSelectedEntryEvent();
+  const showA = vis && !!(__authMe && __authMe.is_admin);
+  const showC = vis && isUserCoordinatorForSelectedEvent();
+  pa.style.display = showA ? 'inline-flex' : 'none';
+  pc.style.display = showC ? 'inline-flex' : 'none';
+}
+
+function updateEntryCoordinatorLine(){
+  const el = document.getElementById('entryEventCoordinatorLine');
+  if(!el) return;
+  const es = document.getElementById('eventSelect');
+  if(!es){
+    el.textContent = '';
+    return;
+  }
+  const c = Number(es.value);
+  if(!c){
+    el.textContent = 'イベントを選択してください。';
+    return;
+  }
+  const ev = (__eventsCache || []).find(function(x){ return Number(x.event_col) === c; });
+  if(!ev){
+    el.textContent = '';
+    return;
+  }
+  if(ev.coordinator_member_number == null || ev.coordinator_member_number === ''){
+    el.textContent = '取りまとめ役: （未設定）';
+    return;
+  }
+  const ja = String(ev.coordinator_name_ja || '').trim();
+  el.textContent = ja ? ('取りまとめ役: #' + ev.coordinator_member_number + ' ' + ja) : ('取りまとめ役: #' + ev.coordinator_member_number);
+}
+
+function syncEntryMemberModalPreview(){
+  const countEl = document.getElementById('memberSelectedCount');
+  const prev = document.getElementById('memberSelectedPreview');
+  const n = __entryMemberPickerDraft.size;
+  const showNames = canProxyForSelectedEntryEvent();
+  if(countEl) countEl.textContent = String(n);
+  if(prev){
+    if(n === 0){
+      prev.textContent = '未選択（OK で確定）';
+      prev.classList.remove('active');
+    } else {
+      const arr = Array.from(__entryMemberPickerDraft).sort(function(a,b){ return a - b; });
+      prev.textContent = arr.map(function(x){
+        if(!showNames) return '#' + x;
+        const ja = memberNameJaForNumber(x);
+        return ja ? ('#' + x + ' ' + ja) : ('#' + x);
+      }).join(', ');
+      prev.classList.add('active');
+    }
+  }
+}
+
+function renderEntryMemberPickerList(){
+  const list = document.getElementById('memberSelectorList');
+  if(!list) return;
+  list.innerHTML = '';
+  const sorted = (__membersCache || []).slice().sort(function(a,b){ return Number(a.member_number) - Number(b.member_number); });
+  if(sorted.length === 0){
+    const p = document.createElement('p');
+    p.className = 'meta';
+    p.style.color = '#fca5a5';
+    p.style.margin = '0';
+    p.textContent = 'メンバー一覧がありません。';
+    list.appendChild(p);
+    syncEntryMemberModalPreview();
+    return;
+  }
+  sorted.forEach(function(m){
+    const mn = Number(m.member_number);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'member-row' + (__entryMemberPickerDraft.has(mn) ? ' active' : '');
+    const ja = String(m.name_ja || '').trim();
+    btn.textContent = canProxyForSelectedEntryEvent() ? (ja ? ('#' + mn + ' ' + ja) : ('#' + mn)) : ('背番号 ' + mn);
+    btn.setAttribute('aria-pressed', __entryMemberPickerDraft.has(mn) ? 'true' : 'false');
+    btn.onclick = function(){
+      if(__entryMemberPickerDraft.has(mn)) __entryMemberPickerDraft.delete(mn);
+      else __entryMemberPickerDraft.add(mn);
+      renderEntryMemberPickerList();
+    };
+    list.appendChild(btn);
+  });
+  syncEntryMemberModalPreview();
+}
+
+function openEntryMemberPicker(){
+  if(!canProxyForSelectedEntryEvent()){
+    return;
+  }
+  __entryMemberPickerDraft = new Set(__entryTargetMemberSet);
+  renderEntryMemberPickerList();
+  const el = document.getElementById('memberModalBackdrop');
+  if(el) el.classList.add('active');
+}
+
+function entryClearMemberSelection(){
+  if(!canProxyForSelectedEntryEvent()) return;
+  __entryTargetMemberSet.clear();
+  updateEntryTargetMemberPill();
+}
+
+function updateProxyEntryMemberBlock(){
+  const block = document.getElementById('adminEntryMemberBlock');
+  const can = canProxyForSelectedEntryEvent();
+  if(block) block.style.display = can ? 'block' : 'none';
+  if(!can){
+    __entryTargetMemberSet.clear();
+    __entryMemberPickerDraft.clear();
+  }
+  updateEntryTargetMemberPill();
+  try{ updateProxyEntryRoleIcons(); } catch(_pi){}
+}
+
+function closeMemberSelector(confirmOk){
+  if(confirmOk){
+    __entryTargetMemberSet = new Set(__entryMemberPickerDraft);
+    updateEntryTargetMemberPill();
+  }
+  const el = document.getElementById('memberModalBackdrop');
+  if(el) el.classList.remove('active');
+}
+
+async function submitEntry(action, opts){
+  opts = opts || {};
+  const proxyOnly = !!opts.proxyOnly;
+  clearEntryFeedback();
+  clearProxyEntryFeedback();
+  const es0 = document.getElementById('eventSelect');
+  const eventCol = es0 ? Number(es0.value) : 0;
+  if(!eventCol){
+    const msg = 'イベントを選択してください。';
+    if(proxyOnly) setProxyEntryFeedback(msg, true);
+    else setEntryFeedback(msg, true);
+    out(msg);
+    return;
+  }
+  if(!__authMe || !__authMe.registered){
+    const msg = '先に初回登録を行ってください。';
+    if(proxyOnly) setProxyEntryFeedback(msg, true);
+    else setEntryFeedback(msg, true);
+    out(msg);
+    return;
+  }
+  const canProxy = canProxyForSelectedEntryEvent();
+  const proxyCount = canProxy ? __entryTargetMemberSet.size : 0;
+  let targets = [];
+  if(proxyOnly){
+    if(!canProxy) return;
+    if(proxyCount === 0){
+      const msg = '代理対象メンバーを「メンバーを選ぶ」で選択してください。';
+      setProxyEntryFeedback(msg, true);
+      out(msg);
+      return;
+    }
+    targets = Array.from(__entryTargetMemberSet).sort(function(a,b){ return a - b; });
+  } else {
+    targets = [Number(__authMe.member_number)];
+  }
+  // 通常エントリーは常に本人のみ。代理対象選択は proxyOnly の時だけ使う。
+  const useMemberInBody = proxyOnly;
+
+  const pendingMsg = proxyOnly
+    ? (action === 'enter' ? '代理エントリーを送信中…' : '代理取り消しを送信中…')
+    : (action === 'enter' ? 'エントリーを送信中…' : '取り消しを送信中…');
+  if(proxyOnly) setProxyEntryFeedback(pendingMsg, false, 'pending');
+  else setEntryFeedback(pendingMsg, false, 'pending');
+  setEntryActionsEnabled(false);
+
+  try{
+    const failures = [];
+    let lastOk = null;
+    for(var i = 0; i < targets.length; i++){
+      const mn = targets[i];
+      try{
+        const body = { action: action };
+        if(useMemberInBody){
+          body.member_number = mn;
+        }
+        lastOk = await req('/events/' + eventCol + '/entries', 'POST', body, true);
+      } catch(e){
+        failures.push('#' + mn + ': ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+    if(failures.length){
+      if(proxyOnly) setProxyEntryFeedback('一部失敗: ' + failures.join(' / '), true);
+      else setEntryFeedback('一部失敗: ' + failures.join(' / '), true);
+      out(failures.join(String.fromCharCode(10)));
+      await refreshEntryEntrants();
+      return;
+    }
+    out(lastOk);
+    const many = targets.length > 1;
+    if(action === 'enter'){
+      if(proxyOnly) clearProxyEntryFeedback();
+      else clearEntryFeedback();
+      await refreshEntryEntrants();
+      if(proxyOnly){
+        showEntryResultPopup(many ? ('代理エントリーしました（' + targets.length + '名）') : '代理エントリーしました。');
+      } else {
+        showEntryResultPopup(many ? ('エントリーしました（' + targets.length + '名）') : 'エントリーしました。');
+      }
+    }
+    if(action === 'cancel'){
+      if(proxyOnly) clearProxyEntryFeedback();
+      else clearEntryFeedback();
+      await refreshEntryEntrants();
+      if(proxyOnly){
+        showEntryResultPopup(many ? ('代理で取り消しました（' + targets.length + '名）') : '代理で取り消しました。');
+      } else {
+        showEntryResultPopup(many ? ('キャンセルしました（' + targets.length + '名）') : 'キャンセルしました。');
+      }
+    }
+  } catch(eOuter){
+    const msg = eOuter && eOuter.message ? eOuter.message : String(eOuter);
+    if(proxyOnly) setProxyEntryFeedback('エラー: ' + msg, true);
+    else setEntryFeedback('エラー: ' + msg, true);
+    out(String(eOuter));
+  } finally {
+    setEntryActionsEnabled(!!(__authMe && __authMe.registered));
+  }
+}
+
+function enter(){ void submitEntry('enter'); }
+function cancelEntry(){ void submitEntry('cancel'); }
+function proxyEnter(){ void submitEntry('enter', { proxyOnly: true }); }
+function proxyCancel(){ void submitEntry('cancel', { proxyOnly: true }); }
+
+(function regaliaBindEventDate(){
+  const ed = document.getElementById('eventDate');
+  if(ed) ed.addEventListener('change', updateDeadlineFromEventDate);
+  setDefaultEventDateAndDeadline();
+})();
+
+(function regaliaBindNav(){
+  var te = document.getElementById('tab-entry');
+  var tc = document.getElementById('tab-cumulative');
+  var th = document.getElementById('tab-history');
+  var tac = document.getElementById('tab-admin-create');
+  var tam = document.getElementById('tab-admin-manage');
+  if(te) te.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-entry', {}); } catch(_e) {} switchTab('entry'); });
+  if(tc) tc.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-cumulative', {}); } catch(_e) {} switchTab('cumulative'); });
+  if(th) th.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-history', {}); } catch(_e) {} switchTab('history'); });
+  if(tac) tac.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-admin-create', {}); } catch(_e) {} switchTab('admin-create'); });
+  if(tam) tam.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-admin-manage', {}); } catch(_e) {} switchTab('admin-manage'); });
+  var hes = document.getElementById('historyEventSelect');
+  if(hes) hes.addEventListener('change', function(){ void refreshHistoryEventBoard(); });
+  var hms = document.getElementById('historyMemberSelect');
+  if(hms) hms.addEventListener('change', function(){ void refreshHistoryMemberTimeline(); });
+  try{ __regaliaDiagPush('bind-nav', { hasEntry: !!te, hasCumulative: !!tc, hasHistory: !!th, hasAdminCreate: !!tac, hasAdminManage: !!tam }); } catch(_e2) {}
+})();
+
+(function regaliaSetupPage_(){
+  var p = (location.pathname || '');
+  if (p.indexOf('register') >= 0 || (new URLSearchParams(location.search).get('page') === 'register')) {
+    document.documentElement.setAttribute('data-regalia-page', 'register');
+  }
+})();
+
+(function regaliaBoot(){
+  (async function () {
+  try { await fetchParkingConfig_(); } catch (eCfg) { if (typeof console !== 'undefined' && console.warn) { console.warn(eCfg); } }
+  var page = document.documentElement.dataset.regaliaPage || 'index';
+  if(page === 'register'){
+    loadRegisterOnlyUI().catch(function(err){
+      var msg = '初期化に失敗: ' + (err && err.message ? err.message : String(err));
+      var re = document.getElementById('registerBootError');
+      if(re){ re.textContent = msg; re.style.display = 'block'; }
+      try{ out(msg); } catch(_e){}
+    });
+    return;
+  }
+  loadEntryUI().catch(function(err){
+    var msg = 'LIFF認証の初期化に失敗: ' + (err && err.message ? err.message : String(err));
+    try{ out(msg); } catch(_e2){
+      var pre = document.getElementById('out');
+      if(pre) pre.textContent = msg;
+    }
+  });
+  var aes = document.getElementById('adminEventSelect');
+  if(aes) aes.addEventListener('change', refreshAdminButtons);
+  var es = document.getElementById('eventSelect');
+  if(es) es.addEventListener('change', function(){
+    void refreshEntryEntrants();
+    try{ updateEntryCoordinatorLine(); } catch(_c){}
+    try{ updateProxyEntryMemberBlock(); } catch(_p){}
+    try{ refreshAuthRoleBadges(); } catch(_rb){}
+  });
+  })();
+})();
+try{ __regaliaDiagPush('script-end', { ok: true }); } catch(_e) {}
+</script>
+</body>
+</html>
