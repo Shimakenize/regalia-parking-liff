@@ -862,6 +862,8 @@
     <span class="header-app-version" id="verInline" title="アプリ版">(loading)</span>
   </div>
 
+  <p id="regaliaTopError" class="regalia-top-error" style="display:none;margin:0 12px 10px;padding:10px 12px;border-radius:10px;background:#1c1917;border:1px solid #7f1d1d;color:#fecaca;font-size:13px;line-height:1.45;" role="status"></p>
+
   <div id="authBannerBlock" class="auth-banner-wrap" style="display:none;">
     <div class="auth-banner-inner">
       <div id="authLoginBanner" class="member-pill auth-login-pill"></div>
@@ -931,6 +933,12 @@
           <button type="button" class="admin-master-link" onclick="void adminMasterCsvDownload()">CSVダウンロード</button>
           <span class="admin-master-sep">・</span>
           <button type="button" class="admin-master-link" onclick="void adminMasterCsvShare()">共有</button>
+          <span id="adminImportSep" class="admin-master-sep" style="display:none">・</span>
+          <span id="adminImportBlock" class="admin-import-gas" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
+            <input type="file" id="adminImportFile" accept=".csv,text/csv,text/plain,.txt" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true" />
+            <button type="button" class="admin-master-link" onclick="void adminMasterCsvImportPick()">マスタ取込</button>
+            <input type="password" id="adminImportBootstrap" placeholder="ブートストラップ" autocomplete="off" inputmode="text" class="admin-import-bootstrap" title="GAS 初回の空DB取込で設定した秘密のみ。空欄で可（管理者の場合）" />
+          </span>
         </span>
       </div>
     </div>
@@ -1155,7 +1163,10 @@
 <script>
 /** GitHub Pages: deploy workflow injects this */
 window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec = 'https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec';
-window.__UI_BUILD__ = '20260422-1';
+/** CI: scripts/inject_gas_bak_into_index.py が GAS /config から上書き（CORS なしで LIFF 初期化可） */
+window.__GAS_BAK_LIFF__ = '__GAS_BAK_LIFF__';
+window.__GAS_BAK_VERSION__ = '__GAS_BAK_VERSION__';
+window.__UI_BUILD__ = '20260422-3';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1167,23 +1178,82 @@ function regaliaAppPageUrl_(path) {
   return u + path.replace(/^\//, '');
 }
 
-async function fetchParkingConfig_() {
-  var base = (typeof window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec === 'string' ? window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec : '').trim();
-  if (!base) return;
-  if (String(base).indexOf('__GAS_') === 0) return;
-  var u = (base.indexOf('?') >= 0 ? base + '&' : base + '?') + '_path=config';
-  var r = await fetch(u);
-  var j = await r.json();
-  if (j && j.liff_id) window.__REGALIA_LIFF_ID__ = j.liff_id;
-  if (j && j.regalia_gas) window.__REGALIA_GAS__ = true;
-  if (j && j.version) {
-    var el = document.getElementById('verInline');
-    if (el) el.textContent = j.version + ' · ui ' + (window.__UI_BUILD__ || '');
+function regaliaSetTopError(msg) {
+  var el = document.getElementById('regaliaTopError');
+  if (!el) return;
+  if (msg) {
+    el.textContent = msg;
+    el.style.display = 'block';
+  } else {
+    el.textContent = '';
+    el.style.display = 'none';
   }
-  window.__REGALIA_CONFIG_LOADED__ = true;
+}
+
+function regaliaBakLiffUsable_() {
+  var v = String(window.__GAS_BAK_LIFF__ == null ? '' : window.__GAS_BAK_LIFF__).trim();
+  if (!v || v === '__GAS_BAK_LIFF__' || v.indexOf('__') === 0) return false;
+  return true;
+}
+
+function regaliaBakVersionUsable_() {
+  var v = String(window.__GAS_BAK_VERSION__ == null ? '' : window.__GAS_BAK_VERSION__).trim();
+  if (!v || v === '__GAS_BAK_VERSION__' || v.indexOf('__') === 0) return false;
+  return true;
+}
+
+async function fetchParkingConfig_() {
+  var elV = document.getElementById('verInline');
+  var base = (typeof window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec === 'string' ? window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec : '').trim();
   var dir = String(window.location.href || '').split('?')[0].replace(/[^/]+$/, '');
   window.__REGALIA_PAGES_BASE__ = dir;
-  window.__REGALIA_API_BASE__ = base.split('?')[0];
+
+  if (!base) {
+    if (elV) elV.textContent = 'GAS URL 未設定';
+    regaliaSetTopError('GAS Web アプリの URL が index.html に埋め込まれていません。プライベートリポの Secret GAS_CONFIG_URL と、Pages 用 workflow のデプロイを確認してください。');
+    return;
+  }
+  if (String(base).indexOf('__GAS_') === 0) {
+    if (elV) elV.textContent = '未デプロイ';
+    regaliaSetTopError('GAS URL のプレースホルダが残っています。プライベートリポに docs/index.html を push し、Deploy to GitHub Pages ワークフローが通るか確認してください。');
+    return;
+  }
+
+  var baseClean = base.split('?')[0];
+  window.__REGALIA_API_BASE__ = baseClean;
+  window.__REGALIA_GAS__ = true;
+
+  if (regaliaBakLiffUsable_()) {
+    window.__REGALIA_LIFF_ID__ = String(window.__GAS_BAK_LIFF__).trim();
+  }
+  if (regaliaBakVersionUsable_() && elV) {
+    elV.textContent = String(window.__GAS_BAK_VERSION__).trim() + ' · ui ' + (window.__UI_BUILD__ || '');
+  } else if (elV && !regaliaBakVersionUsable_()) {
+    if (elV.textContent === '(loading)') elV.textContent = 'GAS';
+  }
+  regaliaSetTopError('');
+
+  var u = (base.indexOf('?') >= 0 ? base + '&' : base + '?') + '_path=config';
+  try {
+    var r = await fetch(u);
+    if (!r.ok) throw new Error('config HTTP ' + r.status);
+    var j = await r.json();
+    if (j && j.liff_id) window.__REGALIA_LIFF_ID__ = j.liff_id;
+    if (j && j.regalia_gas) window.__REGALIA_GAS__ = true;
+    if (j && j.version && elV) {
+      elV.textContent = j.version + ' · ui ' + (window.__UI_BUILD__ || '');
+    }
+  } catch (e) {
+    var em = e && e.message ? String(e.message) : String(e);
+    if (regaliaBakLiffUsable_()) {
+      regaliaSetTopError('GAS /config のブラウザ取得に失敗しました（多くの場合 CORS です）。LIFF 起動用の ID はデプロイ時に焼き込み済みのため、まず「LINE ログイン」を試してください。技術: ' + em);
+    } else {
+      if (elV) elV.textContent = 'config 失敗';
+      regaliaSetTopError('GAS /config を読めず、LIFF ID の焼き込みもありません。' + em + ' — GitHub Actions の再デプロイ、または CORS/デプロイ URL を確認してください。');
+    }
+  }
+  window.__REGALIA_CONFIG_LOADED__ = true;
+  try { updateAdminImportUI(); } catch (_ui) {}
 }
 
 function regaliaApiUrl(path){
@@ -1730,6 +1800,76 @@ async function adminMasterCsvDownload(){
   }
 }
 
+function updateAdminImportUI(){
+  const show = !!(window.__REGALIA_GAS__ && __authMe && __authMe.is_admin);
+  const block = document.getElementById('adminImportBlock');
+  const sep = document.getElementById('adminImportSep');
+  if (block) block.style.display = show ? 'inline-flex' : 'none';
+  if (sep) sep.style.display = show ? 'inline' : 'none';
+}
+
+function adminMasterCsvImportPick(){
+  const inp = document.getElementById('adminImportFile');
+  if (!inp) return;
+  inp.value = '';
+  inp.click();
+}
+
+async function adminImportFileChange(ev){
+  const t = ev && ev.target;
+  const f = t && t.files && t.files[0];
+  if (t) t.value = '';
+  if (!f) return;
+  var text = await f.text();
+  await adminMasterCsvDoImport(text);
+}
+
+async function adminMasterCsvDoImport(csvText){
+  const hint = document.getElementById('adminMasterExportHint');
+  if (!window.__REGALIA_GAS__) {
+    showNoticePopup('GAS バックエンド時のみ使えます。');
+    return;
+  }
+  if (!__authMe || !__authMe.is_admin) {
+    showNoticePopup('管理者のみ実行できます。');
+    return;
+  }
+  try {
+    if (window.liff && typeof window.liff.getIDToken === 'function') {
+      var tok = window.liff.getIDToken();
+      if (tok) __idToken = tok;
+    }
+  } catch (_e) {}
+  if (!__idToken) {
+    showNoticePopup('id_token を取得できません。LIFF でログインし直してから再試行してください。');
+    return;
+  }
+  const bootEl = document.getElementById('adminImportBootstrap');
+  var boot = bootEl && String(bootEl.value || '').trim();
+  const body = { csv_text: String(csvText || '') };
+  if (boot) body.bootstrap_secret = boot;
+  try {
+    if (hint) hint.textContent = '取り込み中…';
+    const j = await req('/admin/import-master-csv', 'POST', body, true);
+    if (j && j._httpStatus && j._httpStatus >= 400) throw new Error((j && j.detail) ? String(j.detail) : 'import failed');
+    var msg = '完了';
+    if (j && j.ok && (j.members != null)) msg = 'members ' + j.members + ' / events ' + (j.events != null ? j.events : '—') + ' / entries ' + (j.entries != null ? j.entries : '—');
+    if (hint) hint.textContent = '取り込み' + msg;
+    showNoticePopup('マスタ取り込みが完了しました。');
+    try {
+      await listEvents();
+      const members = await req('/members');
+      __membersCache = Array.isArray(members) ? members : [];
+    } catch (_r) {}
+    try { void refreshCumulativePane(); } catch (_c) {}
+    try { void refreshEntryEntrants(); } catch (_e) {}
+    try { void refreshAuthMe(); } catch (_a) {}
+  } catch (e) {
+    if (hint) hint.textContent = 'エラー: ' + (e && e.message ? e.message : String(e));
+    showNoticePopup('取り込み失敗: ' + (e && e.message ? e.message : String(e)));
+  }
+}
+
 async function adminMasterCsvShare(){
   const hint = document.getElementById('adminMasterExportHint');
   try{
@@ -2028,8 +2168,11 @@ async function req(url, method='GET', body=null, raiseOnError=false){
 }
 
 function getLiffId(){
-  const v = (window.__REGALIA_LIFF_ID__ || '').trim();
-  return v;
+  const a = (window.__REGALIA_LIFF_ID__ || '').trim();
+  if (a) return a;
+  const b = (window.__GAS_BAK_LIFF__ || '').trim();
+  if (b && b !== '__GAS_BAK_LIFF__' && b.indexOf('__') !== 0) return b;
+  return '';
 }
 
 function loadLiffSdk(){
@@ -2067,18 +2210,23 @@ async function ensureLiffIdentity(){
   if(!liffId){
     var hint = window.__REGALIA_DEV_AUTH_OK__
       ? 'LIFF ID が未設定です。LINE を使う場合は .env に LINE_LIFF_ID を設定してください。ローカルだけの場合は Console で localStorage.setItem("regalia_dev_secret", "<.envのREGALIA_DEV_AUTH_SECRET>") を実行してから再読み込みしてください。'
-      : 'LIFF ID が未設定です（LINE_LIFF_ID を設定してください）';
+      : 'LIFF ID が未設定です。GAS スクリプトプロパティ LIFF_ID、または再デプロイ（LIFF 焼き込み）を確認してください。';
+    regaliaSetTopError(hint);
     throw new Error(hint);
   }
   await loadLiffSdk();
   await window.liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
   if(!window.liff.isLoggedIn()){
+    regaliaSetTopError('LINE ログインへ遷移します。開かない場合は同一URLを「LINE」アプリのトーク/リッチメニューから開き、PCではポップアップを許可してください。');
     window.liff.login({ redirectUri: regaliaLiffRedirectUri() });
     return;
   }
+  regaliaSetTopError('');
   const token = window.liff.getIDToken();
   if(!token){
-    throw new Error('LIFF id_token を取得できませんでした');
+    var et = 'LIFF id_token を取得できませんでした。LINE で再度開き直すか、ログアウトして再ログインしてください。';
+    regaliaSetTopError(et);
+    throw new Error(et);
   }
   __idToken = token;
 }
@@ -2599,7 +2747,13 @@ async function copyShareMessage(){
 }
 
 async function loadEntryUI(){
-  await ensureLiffIdentity();
+  try{
+    await ensureLiffIdentity();
+  } catch (e) {
+    var m = (e && e.message) ? String(e.message) : String(e);
+    regaliaSetTopError(m);
+    return;
+  }
   if(!hasRegaliaAuth()){
     return;
   }
@@ -2811,6 +2965,7 @@ function applyAuthGate(registered, isAdmin){
     }
     if(tabCreate) tabCreate.classList.remove('active');
   }
+  try { updateAdminImportUI(); } catch (_aimp) {}
 }
 
 function updateRegisterSelectedPill(){
@@ -3441,6 +3596,8 @@ function proxyCancel(){ void submitEntry('cancel', { proxyOnly: true }); }
     try{ updateProxyEntryMemberBlock(); } catch(_p){}
     try{ refreshAuthRoleBadges(); } catch(_rb){}
   });
+  var aif = document.getElementById('adminImportFile');
+  if (aif) aif.addEventListener('change', function(ev){ void adminImportFileChange(ev); });
   })();
 })();
 try{ __regaliaDiagPush('script-end', { ok: true }); } catch(_e) {}
