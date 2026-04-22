@@ -1169,7 +1169,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260422-7';
+window.__UI_BUILD__ = '20260422-8';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1240,11 +1240,6 @@ async function fetchParkingConfig_() {
   try {
     var r = await fetch(u);
     if (!r.ok) throw new Error('config HTTP ' + r.status);
-    // GAS は script.google.com -> script.googleusercontent.com へリダイレクトされる。
-    // ここで最終到達URLを保持すると、以後 POST で 302/CORS 問題を避けやすい。
-    if (r && typeof r.url === 'string' && r.url) {
-      window.__REGALIA_API_BASE__ = r.url;
-    }
     var j = await r.json();
     if (j && j.liff_id != null) {
       var liffS = String(j.liff_id).trim();
@@ -1306,8 +1301,8 @@ var __regaliaDiagPush = function(){};
     var batch = buf.splice(0, buf.length);
     try{
       if (window.__REGALIA_GAS__ && window.__REGALIA_API_BASE__) {
-        var b = String(window.__REGALIA_API_BASE__ || '');
-        if (b) { fetch(b, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify({ _path: 'diag-browser-log', _http: 'POST', entries: batch, id_token: typeof __idToken === 'string' ? __idToken : '' }) }).catch(function(){}); return; }
+        // GAS クロスオリジンでは CORS ノイズになるため、ブラウザ診断ログ送信は抑止。
+        return;
       }
       fetch(regaliaApiUrl('/diag-browser-log'), { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ entries: batch }) }).catch(function(){});
     } catch(_e) {}
@@ -2150,6 +2145,18 @@ function regaliaParseApiJsonBody_(t, raiseOnError, httpStatus) {
   return j;
 }
 
+function regaliaGasGetUrl_(base, payload){
+  var b = String(base || '').split('#')[0].split('?')[0];
+  var q = new URLSearchParams();
+  Object.keys(payload || {}).forEach(function(k){
+    var v = payload[k];
+    if (v == null) return;
+    if (typeof v === 'object') q.set(k, JSON.stringify(v));
+    else q.set(k, String(v));
+  });
+  return b + '?' + q.toString();
+}
+
 async function req(url, method='GET', body=null, raiseOnError=false){
   if (window.__REGALIA_GAS__) {
     const p = (url || '').replace(/^\//, '');
@@ -2161,8 +2168,9 @@ async function req(url, method='GET', body=null, raiseOnError=false){
       try { const j = JSON.parse(body); Object.assign(postBody, j); } catch(_e) {}
     }
     const b = (typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__ : '');
-    // GAS は CORS preflight(OPTIONS) で 405 になりやすいので simple request(text/plain)で送る。
-    const r2 = await fetch(b, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(postBody) });
+    // GAS WebApp はブラウザ CORS 制約が強いため、GET クエリトンネル（_path/_http/id_token）で統一。
+    const u2 = regaliaGasGetUrl_(b, postBody);
+    const r2 = await fetch(u2, { method: 'GET' });
     const t2 = await r2.text();
     return regaliaParseApiJsonBody_(t2, raiseOnError, { ok: r2.ok });
   }
