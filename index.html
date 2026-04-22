@@ -1238,18 +1238,13 @@ async function fetchParkingConfig_() {
 
   var u = (base.indexOf('?') >= 0 ? base + '&' : base + '?') + '_path=config';
   try {
-    var sameOrigin = false;
-    try {
-      sameOrigin = (new URL(baseClean, window.location.href)).origin === window.location.origin;
-    } catch (_uerr) {}
-    if (!sameOrigin && regaliaBakLiffUsable_()) {
-      // GitHub Pages -> GAS 直接 fetch は CORS で失敗しやすいため、焼き込み済み LIFF を優先して進む。
-      window.__REGALIA_CONFIG_LOADED__ = true;
-      try { updateAdminImportUI(); } catch (_ui2) {}
-      return;
-    }
     var r = await fetch(u);
     if (!r.ok) throw new Error('config HTTP ' + r.status);
+    // GAS は script.google.com -> script.googleusercontent.com へリダイレクトされる。
+    // ここで最終到達URLを保持すると、以後 POST で 302/CORS 問題を避けやすい。
+    if (r && typeof r.url === 'string' && r.url) {
+      window.__REGALIA_API_BASE__ = r.url;
+    }
     var j = await r.json();
     if (j && j.liff_id != null) {
       var liffS = String(j.liff_id).trim();
@@ -1311,7 +1306,7 @@ var __regaliaDiagPush = function(){};
     var batch = buf.splice(0, buf.length);
     try{
       if (window.__REGALIA_GAS__ && window.__REGALIA_API_BASE__) {
-        var b = String(window.__REGALIA_API_BASE__ || '').split('?')[0];
+        var b = String(window.__REGALIA_API_BASE__ || '');
         if (b) { fetch(b, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify({ _path: 'diag-browser-log', _http: 'POST', entries: batch, id_token: typeof __idToken === 'string' ? __idToken : '' }) }).catch(function(){}); return; }
       }
       fetch(regaliaApiUrl('/diag-browser-log'), { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ entries: batch }) }).catch(function(){});
@@ -2165,7 +2160,7 @@ async function req(url, method='GET', body=null, raiseOnError=false){
     } else if (body && typeof body === 'string') {
       try { const j = JSON.parse(body); Object.assign(postBody, j); } catch(_e) {}
     }
-    const b = (typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__ : '').split('?')[0];
+    const b = (typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__ : '');
     // GAS は CORS preflight(OPTIONS) で 405 になりやすいので simple request(text/plain)で送る。
     const r2 = await fetch(b, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(postBody) });
     const t2 = await r2.text();
