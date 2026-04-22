@@ -1169,7 +1169,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260422-8';
+window.__UI_BUILD__ = '20260422-9';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -2145,18 +2145,6 @@ function regaliaParseApiJsonBody_(t, raiseOnError, httpStatus) {
   return j;
 }
 
-function regaliaGasGetUrl_(base, payload){
-  var b = String(base || '').split('#')[0].split('?')[0];
-  var q = new URLSearchParams();
-  Object.keys(payload || {}).forEach(function(k){
-    var v = payload[k];
-    if (v == null) return;
-    if (typeof v === 'object') q.set(k, JSON.stringify(v));
-    else q.set(k, String(v));
-  });
-  return b + '?' + q.toString();
-}
-
 async function req(url, method='GET', body=null, raiseOnError=false){
   if (window.__REGALIA_GAS__) {
     const p = (url || '').replace(/^\//, '');
@@ -2167,10 +2155,9 @@ async function req(url, method='GET', body=null, raiseOnError=false){
     } else if (body && typeof body === 'string') {
       try { const j = JSON.parse(body); Object.assign(postBody, j); } catch(_e) {}
     }
-    const b = (typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__ : '');
-    // GAS WebApp はブラウザ CORS 制約が強いため、GET クエリトンネル（_path/_http/id_token）で統一。
-    const u2 = regaliaGasGetUrl_(b, postBody);
-    const r2 = await fetch(u2, { method: 'GET' });
+    const b = (typeof window.__REGALIA_API_BASE__ === 'string' ? window.__REGALIA_API_BASE__ : '').split('?')[0];
+    // GAS は CORS preflight(OPTIONS) で 405 になりやすいので simple request(text/plain)で送る。
+    const r2 = await fetch(b, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(postBody) });
     const t2 = await r2.text();
     return regaliaParseApiJsonBody_(t2, raiseOnError, { ok: r2.ok });
   }
