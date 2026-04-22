@@ -933,12 +933,6 @@
           <button type="button" class="admin-master-link" onclick="void adminMasterCsvDownload()">CSVダウンロード</button>
           <span class="admin-master-sep">・</span>
           <button type="button" class="admin-master-link" onclick="void adminMasterCsvShare()">共有</button>
-          <span id="adminImportSep" class="admin-master-sep" style="display:none">・</span>
-          <span id="adminImportBlock" class="admin-import-gas" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
-            <input type="file" id="adminImportFile" accept=".csv,text/csv,text/plain,.txt" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true" />
-            <button type="button" class="admin-master-link" onclick="void adminMasterCsvImportPick()">マスタ取込</button>
-            <input type="password" id="adminImportBootstrap" placeholder="ブートストラップ" autocomplete="off" inputmode="text" class="admin-import-bootstrap" title="GAS 初回の空DB取込で設定した秘密のみ。空欄で可（管理者の場合）" />
-          </span>
         </span>
       </div>
     </div>
@@ -1069,6 +1063,19 @@
       <button type="button" id="btnEntryRequestMsg" class="secondary" onclick="entryRequestMsg()">エントリー依頼文面生成</button>
       <button type="button" id="btnResultNotifyMsg" class="secondary" onclick="shareMsg()">結果通知文面生成</button>
       <button type="button" id="btnDeleteEvent" class="secondary" onclick="deleteEvent()">イベント削除</button>
+      <button type="button" id="btnRegisteredMembers" class="secondary" onclick="void refreshRegisteredMembersAdmin()">登録メンバリスト再読込</button>
+      <div id="adminRegisteredMembersBlock" class="event-status-flow" style="margin-top:12px;">
+        <div class="flow-title">登録メンバリスト</div>
+        <div id="adminRegisteredMembersMeta" class="status-meta">読み込み待ち…</div>
+        <div style="overflow:auto;margin-top:8px;">
+          <table class="history-timeline-table" aria-label="登録メンバ一覧">
+            <thead>
+              <tr><th class="num">背番号</th><th>氏名</th><th>表示名</th><th>関係</th><th>更新</th></tr>
+            </thead>
+            <tbody id="adminRegisteredMembersBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
   </div>
@@ -1453,6 +1460,9 @@ function switchTab(name){
     void refreshHistoryEventBoard();
     void refreshHistoryMemberTimeline();
   }
+  if(name === 'admin-manage'){
+    void refreshRegisteredMembersAdmin();
+  }
 }
 
 async function refreshCumulativePane(){
@@ -1807,11 +1817,7 @@ async function adminMasterCsvDownload(){
 }
 
 function updateAdminImportUI(){
-  const show = !!(window.__REGALIA_GAS__ && __authMe && __authMe.is_admin);
-  const block = document.getElementById('adminImportBlock');
-  const sep = document.getElementById('adminImportSep');
-  if (block) block.style.display = show ? 'inline-flex' : 'none';
-  if (sep) sep.style.display = show ? 'inline' : 'none';
+  // セキュリティ方針: マスタ取込UIは運用保守用APIのみ残し、画面には表示しない。
 }
 
 function adminMasterCsvImportPick(){
@@ -2149,6 +2155,8 @@ async function req(url, method='GET', body=null, raiseOnError=false){
   if (window.__REGALIA_GAS__) {
     const p = (url || '').replace(/^\//, '');
     const postBody = { _path: p, _http: method, id_token: __idToken || '' };
+    if (!postBody.user_agent) postBody.user_agent = String(navigator.userAgent || '').slice(0, 500);
+    if (!postBody.page) postBody.page = String((location.pathname || '/') + (location.search || '')).slice(0, 200);
     if (window.__REGALIA_DEV_AUTH_OK__ && __regaliaDevSecret) { postBody.x_regalia_dev_secret = __regaliaDevSecret; }
     if (body && typeof body === 'object') {
       Object.keys(body).forEach(function (k) { if (k !== '_path' && k !== '_http') postBody[k] = body[k]; });
@@ -2780,6 +2788,7 @@ async function loadEntryUI(){
   try{
     renderAuthBanner();
     applyAuthGate(!!__authMe.registered, !!__authMe.is_admin);
+    if(__authMe && __authMe.is_admin){ void refreshRegisteredMembersAdmin(); }
   } catch(_earlyUi){}
   // イベントは /members より先に埋める（/members が遅延・ハングしてもプルダウンが空のままにならない）
   try{
@@ -2819,7 +2828,7 @@ async function loadRegisterOnlyUI(){
     return;
   }
   try{
-    const members = await req('/members');
+    const members = await req('/members-public');
     __membersCache = Array.isArray(members) ? members : [];
     if(!Array.isArray(members)){
       out('メンバー一覧が配列ではありません: ' + (typeof members === 'string' ? members : JSON.stringify(members)));
@@ -2832,6 +2841,59 @@ async function loadRegisterOnlyUI(){
   updateRegisterMemberEmptyHint();
   updateRegisterSelectedPill();
   refreshRegisterPageHints();
+}
+
+async function refreshRegisteredMembersAdmin(){
+  const meta = document.getElementById('adminRegisteredMembersMeta');
+  const body = document.getElementById('adminRegisteredMembersBody');
+  if(!meta || !body) return;
+  if(!__authMe || !__authMe.is_admin){
+    meta.textContent = '管理者のみ表示できます。';
+    body.innerHTML = '';
+    return;
+  }
+  meta.textContent = '読み込み中…';
+  body.innerHTML = '';
+  try{
+    const rows = await req('/admin/registered-members', 'GET', null, true);
+    if(!Array.isArray(rows)){
+      meta.textContent = '取得形式が不正です。';
+      return;
+    }
+    meta.textContent = '登録済み ' + rows.length + ' 件';
+    if(rows.length === 0){
+      const tr0 = document.createElement('tr');
+      const td0 = document.createElement('td');
+      td0.colSpan = 5;
+      td0.className = 'meta';
+      td0.textContent = '登録済みユーザーはいません。';
+      tr0.appendChild(td0);
+      body.appendChild(tr0);
+      return;
+    }
+    rows.forEach(function(r){
+      const tr = document.createElement('tr');
+      const relation = String(r.relation || '') === 'その他' && String(r.relation_other || '').trim()
+        ? String(r.relation_other || '').trim()
+        : String(r.relation || '');
+      var cols = [
+        String(r.member_number != null ? r.member_number : ''),
+        String(r.member_name_ja || ''),
+        String(r.display_name || ''),
+        relation,
+        String(r.updated_at || ''),
+      ];
+      cols.forEach(function(v, idx){
+        const td = document.createElement('td');
+        if(idx === 0) td.className = 'num';
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  } catch(e){
+    meta.textContent = '取得に失敗しました: ' + (e && e.message ? e.message : String(e));
+  }
 }
 
 function registerBackLabel(memberNumber){
@@ -3074,6 +3136,7 @@ async function refreshAuthMe(){
     updateEntrySelfMemberLine();
     setEntryActionsEnabled(registered);
     applyAuthGate(registered, isAdmin);
+    if(isAdmin){ void refreshRegisteredMembersAdmin(); }
   } catch(_ui1){}
   try{
     updateProxyEntryMemberBlock();
