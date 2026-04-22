@@ -1164,7 +1164,7 @@
 /** GitHub Pages: deploy で https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec のみ置換（window.__GAS_CONFIG_URL__ 全体を sed すると識別子が壊れる） */
 window.__GAS_CONFIG_URL__ = 'https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec';
 /** CI: scripts/inject_gas_bak_into_index.py が GAS /config から上書き（CORS なしで LIFF 初期化可） */
-window.__GAS_BAK_LIFF__ = '__GAS_BAK_LIFF__';
+window.2009621879-bcCHTqza = '2009621879-bcCHTqza';
 window.__GAS_BAK_VERSION__ = '__GAS_BAK_VERSION__';
 window.__UI_BUILD__ = '20260422-4';
 window.__REGALIA_GAS__ = false;
@@ -1191,8 +1191,8 @@ function regaliaSetTopError(msg) {
 }
 
 function regaliaBakLiffUsable_() {
-  var v = String(window.__GAS_BAK_LIFF__ == null ? '' : window.__GAS_BAK_LIFF__).trim();
-  if (!v || v === '__GAS_BAK_LIFF__' || v.indexOf('__') === 0) return false;
+  var v = String(window.2009621879-bcCHTqza == null ? '' : window.2009621879-bcCHTqza).trim();
+  if (!v || v === '2009621879-bcCHTqza' || v.indexOf('__') === 0) return false;
   return true;
 }
 
@@ -1224,7 +1224,7 @@ async function fetchParkingConfig_() {
   window.__REGALIA_GAS__ = true;
 
   if (regaliaBakLiffUsable_()) {
-    window.__REGALIA_LIFF_ID__ = String(window.__GAS_BAK_LIFF__).trim();
+    window.__REGALIA_LIFF_ID__ = String(window.2009621879-bcCHTqza).trim();
   }
   if (regaliaBakVersionUsable_() && elV) {
     elV.textContent = String(window.__GAS_BAK_VERSION__).trim() + ' · ui ' + (window.__UI_BUILD__ || '');
@@ -2170,8 +2170,8 @@ async function req(url, method='GET', body=null, raiseOnError=false){
 function getLiffId(){
   const a = (window.__REGALIA_LIFF_ID__ || '').trim();
   if (a) return a;
-  const b = (window.__GAS_BAK_LIFF__ || '').trim();
-  if (b && b !== '__GAS_BAK_LIFF__' && b.indexOf('__') !== 0) return b;
+  const b = (window.2009621879-bcCHTqza || '').trim();
+  if (b && b !== '2009621879-bcCHTqza' && b.indexOf('__') !== 0) return b;
   return '';
 }
 
