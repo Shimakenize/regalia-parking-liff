@@ -638,52 +638,6 @@
       flex-wrap: nowrap;
     }
     .tab.tab-with-inline-ico .tab-coord-ico { flex-shrink: 0; }
-    .tabs-admin .tab-admin-master-cell {
-      display: none;
-      flex: 1 1 0;
-      min-width: 0;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      flex-wrap: nowrap;
-      margin: 0 !important;
-      border-radius: 0;
-      padding: 8px 4px;
-      font-size: 11px;
-      font-weight: 700;
-      background: #151d2e;
-      color: var(--muted);
-      border: none;
-      border-right: none;
-    }
-    .tab-admin-master-cell .role-ico { width: 20px; height: 20px; }
-    .tab-admin-master-cell .role-ico svg { width: 12px; height: 12px; }
-    .admin-master-txt {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
-      justify-content: center;
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.3;
-    }
-    button.admin-master-link {
-      margin: 0;
-      padding: 0;
-      border: none;
-      background: none;
-      color: #5eead4;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      font: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    button.admin-master-link:hover { color: #99f6e4; }
-    .admin-master-sep { color: var(--muted); user-select: none; }
     .proxy-entry-head {
       display: flex;
       flex-direction: row;
@@ -820,7 +774,6 @@
       .tabs { gap: 0; }
       .tabs-main .tab { flex: 1 1 33%; margin: 0 !important; font-size: 11px; padding: 11px 4px; }
       .tabs-admin .tab { flex: 1 1 0; min-width: 0; margin: 0 !important; font-size: 11px; padding: 11px 4px; }
-      .tabs-admin .tab-admin-master-cell { padding: 6px 2px; gap: 2px; }
       .admin-event-row { gap: 10px; }
       .admin-event-row .row, .event-status-flow { flex: 1 1 100%; }
       .entry-member-grid { max-height: min(48vh, 360px); }
@@ -925,16 +878,12 @@
       </button>
       <button type="button" id="tab-admin-manage" class="tab tab-with-inline-ico">
         <span id="tabCoordIcoManage" class="role-ico coordinator tab-coord-ico" style="display:none;" title="取りまとめ役"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
-        <span>イベント管理</span>
+        <span>イベント変更</span>
       </button>
-      <div id="adminMasterTabCell" class="tab-admin-master-cell">
+      <button type="button" id="tab-admin-master" class="tab tab-with-inline-ico">
         <span class="role-ico admin" title="管理者"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 16L3 10l5.5 2L12 4l3.5 8L21 10l-2 6H5zm1.5 2h11v2h-11v-2z"/></svg></span>
-        <span class="admin-master-txt">
-          <button type="button" class="admin-master-link" onclick="void adminMasterCsvDownload()">CSVダウンロード</button>
-          <span class="admin-master-sep">・</span>
-          <button type="button" class="admin-master-link" onclick="void adminMasterCsvShare()">共有</button>
-        </span>
-      </div>
+        <span>管理者メニュー</span>
+      </button>
     </div>
   </div>
   <p id="adminMasterExportHint" class="meta" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-live="polite"></p>
@@ -1040,7 +989,7 @@
 
   <div id="pane-admin-manage" class="pane">
     <div class="card">
-      <div class="legend">イベント操作</div>
+      <div class="legend">イベント変更</div>
       <div class="admin-event-row">
         <div class="row"><label>イベント名</label><select id="adminEventSelect" class="select-event"></select></div>
         <p id="adminEventEmptyHint" class="meta" style="display:none;margin-top:6px;color:#fca5a5;"></p>
@@ -1063,7 +1012,18 @@
       <button type="button" id="btnEntryRequestMsg" class="secondary" onclick="entryRequestMsg()">エントリー依頼文面生成</button>
       <button type="button" id="btnResultNotifyMsg" class="secondary" onclick="shareMsg()">結果通知文面生成</button>
       <button type="button" id="btnDeleteEvent" class="secondary" onclick="deleteEvent()">イベント削除</button>
-      <button type="button" id="btnRegisteredMembers" class="secondary" onclick="void refreshRegisteredMembersAdmin()">登録メンバリスト再読込</button>
+    </div>
+  </div>
+
+  <div id="pane-admin-master" class="pane">
+    <div class="card">
+      <div class="legend">管理者メニュー</div>
+      <p id="adminMasterOperationFeedback" class="meta entry-feedback" style="margin:6px 0 10px;text-align:center;min-height:1.35em;" aria-live="polite"></p>
+      <button type="button" class="secondary" onclick="void adminMasterCsvDownload()">CSVダウンロード</button>
+      <button type="button" class="secondary" onclick="void adminMasterCsvShare()">CSV共有</button>
+      <button type="button" class="secondary" onclick="void refreshRegisteredMembersAdmin()">登録メンバリスト再読込</button>
+      <button type="button" class="secondary" onclick="void refreshAccessLogsAdmin()">アクセスログ再読込</button>
+
       <div id="adminRegisteredMembersBlock" class="event-status-flow" style="margin-top:12px;">
         <div class="flow-title">登録メンバリスト</div>
         <div id="adminRegisteredMembersMeta" class="status-meta">読み込み待ち…</div>
@@ -1073,6 +1033,19 @@
               <tr><th class="num">背番号</th><th>氏名</th><th>表示名</th><th>関係</th><th>更新</th></tr>
             </thead>
             <tbody id="adminRegisteredMembersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="adminAccessLogsBlock" class="event-status-flow" style="margin-top:12px;">
+        <div class="flow-title">アクセスログ</div>
+        <div id="adminAccessLogsMeta" class="status-meta">読み込み待ち…</div>
+        <div style="overflow:auto;margin-top:8px;">
+          <table class="history-timeline-table" aria-label="アクセスログ一覧">
+            <thead>
+              <tr><th>時刻</th><th class="num">背番号</th><th>表示名</th><th>ページ</th><th>UA</th></tr>
+            </thead>
+            <tbody id="adminAccessLogsBody"></tbody>
           </table>
         </div>
       </div>
@@ -1176,7 +1149,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260422-9';
+window.__UI_BUILD__ = '20260422-10';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1425,11 +1398,13 @@ function switchTab(name){
   const histTab = document.getElementById('tab-history');
   const tabCreate = document.getElementById('tab-admin-create');
   const tabManage = document.getElementById('tab-admin-manage');
+  const tabMaster = document.getElementById('tab-admin-master');
   const entryPane = document.getElementById('pane-entry');
   const cumPane = document.getElementById('pane-cumulative');
   const histPane = document.getElementById('pane-history');
   const paneCreate = document.getElementById('pane-admin-create');
   const paneManage = document.getElementById('pane-admin-manage');
+  const paneMaster = document.getElementById('pane-admin-master');
   if(!entryTab || !cumTab || !histTab || !histPane || !entryPane || !cumPane){
     try{ __regaliaDiagPush('switchTab-missing-dom', { name: name }); } catch(_e2) {}
     return;
@@ -1439,7 +1414,12 @@ function switchTab(name){
   const isHist = name === 'history';
   const isCreate = name === 'admin-create';
   const isManage = name === 'admin-manage';
+  const isMaster = name === 'admin-master';
   if(isCreate && !canCreateEvent()){
+    switchTab('admin-manage');
+    return;
+  }
+  if(isMaster && !(__authMe && __authMe.is_admin)){
     switchTab('admin-manage');
     return;
   }
@@ -1448,11 +1428,13 @@ function switchTab(name){
   histTab.classList.toggle('active', isHist);
   if(tabCreate){ tabCreate.classList.toggle('active', isCreate); }
   if(tabManage){ tabManage.classList.toggle('active', isManage); }
+  if(tabMaster){ tabMaster.classList.toggle('active', isMaster); }
   entryPane.classList.toggle('active', isEntry);
   cumPane.classList.toggle('active', isCum);
   histPane.classList.toggle('active', isHist);
   if(paneCreate){ paneCreate.classList.toggle('active', isCreate); }
   if(paneManage){ paneManage.classList.toggle('active', isManage); }
+  if(paneMaster){ paneMaster.classList.toggle('active', isMaster); }
   if(name === 'cumulative'){
     void refreshCumulativePane();
   }
@@ -1460,8 +1442,9 @@ function switchTab(name){
     void refreshHistoryEventBoard();
     void refreshHistoryMemberTimeline();
   }
-  if(name === 'admin-manage'){
+  if(name === 'admin-master'){
     void refreshRegisteredMembersAdmin();
+    void refreshAccessLogsAdmin();
   }
 }
 
@@ -2788,7 +2771,10 @@ async function loadEntryUI(){
   try{
     renderAuthBanner();
     applyAuthGate(!!__authMe.registered, !!__authMe.is_admin);
-    if(__authMe && __authMe.is_admin){ void refreshRegisteredMembersAdmin(); }
+    if(__authMe && __authMe.is_admin){
+      void refreshRegisteredMembersAdmin();
+      void refreshAccessLogsAdmin();
+    }
   } catch(_earlyUi){}
   // イベントは /members より先に埋める（/members が遅延・ハングしてもプルダウンが空のままにならない）
   try{
@@ -2886,6 +2872,56 @@ async function refreshRegisteredMembersAdmin(){
       cols.forEach(function(v, idx){
         const td = document.createElement('td');
         if(idx === 0) td.className = 'num';
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  } catch(e){
+    meta.textContent = '取得に失敗しました: ' + (e && e.message ? e.message : String(e));
+  }
+}
+
+async function refreshAccessLogsAdmin(){
+  const meta = document.getElementById('adminAccessLogsMeta');
+  const body = document.getElementById('adminAccessLogsBody');
+  if(!meta || !body) return;
+  if(!__authMe || !__authMe.is_admin){
+    meta.textContent = '管理者のみ表示できます。';
+    body.innerHTML = '';
+    return;
+  }
+  meta.textContent = '読み込み中…';
+  body.innerHTML = '';
+  try{
+    const rows = await req('/admin/access-logs', 'GET', null, true);
+    if(!Array.isArray(rows)){
+      meta.textContent = '取得形式が不正です。';
+      return;
+    }
+    meta.textContent = '最新 ' + rows.length + ' 件';
+    if(rows.length === 0){
+      const tr0 = document.createElement('tr');
+      const td0 = document.createElement('td');
+      td0.colSpan = 5;
+      td0.className = 'meta';
+      td0.textContent = 'アクセスログはまだありません。';
+      tr0.appendChild(td0);
+      body.appendChild(tr0);
+      return;
+    }
+    rows.forEach(function(r){
+      const tr = document.createElement('tr');
+      var cols = [
+        String(r.at_iso || ''),
+        String(r.member_number != null ? r.member_number : ''),
+        String(r.display_name || ''),
+        String(r.page || ''),
+        String(r.user_agent || ''),
+      ];
+      cols.forEach(function(v, idx){
+        const td = document.createElement('td');
+        if(idx === 1) td.className = 'num';
         td.textContent = v;
         tr.appendChild(td);
       });
@@ -3003,14 +3039,12 @@ function applyAuthGate(registered, isAdmin){
   const block = document.getElementById('adminNavBlock');
   const tabCreate = document.getElementById('tab-admin-create');
   const tabManage = document.getElementById('tab-admin-manage');
+  const tabMaster = document.getElementById('tab-admin-master');
   const paneCreate = document.getElementById('pane-admin-create');
   const paneManage = document.getElementById('pane-admin-manage');
-  const masterCell = document.getElementById('adminMasterTabCell');
+  const paneMaster = document.getElementById('pane-admin-master');
   const coordMenu = !!(registered && hasCoordinatorMenuRole());
   const showAdminRow = !!(registered && (isAdmin || coordMenu));
-  if(masterCell){
-    masterCell.style.display = isAdmin ? 'flex' : 'none';
-  }
   if(block){
     block.style.display = showAdminRow ? 'block' : 'none';
   }
@@ -3022,17 +3056,27 @@ function applyAuthGate(registered, isAdmin){
   }
   setTabEnabled(tabCreate, canCreateEvent());
   setTabEnabled(tabManage, !!(registered && (isAdmin || coordMenu)));
+  setTabEnabled(tabMaster, !!(registered && isAdmin));
   if(!showAdminRow){
     if(paneCreate) paneCreate.classList.remove('active');
     if(paneManage) paneManage.classList.remove('active');
+    if(paneMaster) paneMaster.classList.remove('active');
     if(tabCreate) tabCreate.classList.remove('active');
     if(tabManage) tabManage.classList.remove('active');
+    if(tabMaster) tabMaster.classList.remove('active');
     switchTab('entry');
   } else if(coordMenu && !canCreateEvent()){
     if(paneCreate && paneCreate.classList.contains('active')){
       switchTab('admin-manage');
     }
     if(tabCreate) tabCreate.classList.remove('active');
+  }
+  if(!isAdmin){
+    if(paneMaster && paneMaster.classList.contains('active')){
+      switchTab('admin-manage');
+    }
+    if(paneMaster) paneMaster.classList.remove('active');
+    if(tabMaster) tabMaster.classList.remove('active');
   }
   try { updateAdminImportUI(); } catch (_aimp) {}
 }
@@ -3136,7 +3180,10 @@ async function refreshAuthMe(){
     updateEntrySelfMemberLine();
     setEntryActionsEnabled(registered);
     applyAuthGate(registered, isAdmin);
-    if(isAdmin){ void refreshRegisteredMembersAdmin(); }
+    if(isAdmin){
+      void refreshRegisteredMembersAdmin();
+      void refreshAccessLogsAdmin();
+    }
   } catch(_ui1){}
   try{
     updateProxyEntryMemberBlock();
@@ -3147,7 +3194,7 @@ async function refreshAuthMe(){
     if(openCoord && nextNom){
       setEntryFeedback('取りまとめ役としてログイン中です（締切前のイベントの管理・代理に加え、次回イベントの取りまとめ役に指名されています）。', false);
     } else if(openCoord){
-      setEntryFeedback('アクティブなイベントの取りまとめ役としてログイン中です（締切前の該当イベントで代理エントリー・イベント管理が可能）。', false);
+      setEntryFeedback('アクティブなイベントの取りまとめ役としてログイン中です（締切前の該当イベントで代理エントリー・イベント変更が可能）。', false);
     } else if(nextNom){
       setEntryFeedback('次回イベントの取りまとめ役に指名されています（新規イベントの作成も可能です）。', false);
     } else {
@@ -3618,16 +3665,18 @@ function proxyCancel(){ void submitEntry('cancel', { proxyOnly: true }); }
   var th = document.getElementById('tab-history');
   var tac = document.getElementById('tab-admin-create');
   var tam = document.getElementById('tab-admin-manage');
+  var tmas = document.getElementById('tab-admin-master');
   if(te) te.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-entry', {}); } catch(_e) {} switchTab('entry'); });
   if(tc) tc.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-cumulative', {}); } catch(_e) {} switchTab('cumulative'); });
   if(th) th.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-history', {}); } catch(_e) {} switchTab('history'); });
   if(tac) tac.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-admin-create', {}); } catch(_e) {} switchTab('admin-create'); });
   if(tam) tam.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-admin-manage', {}); } catch(_e) {} switchTab('admin-manage'); });
+  if(tmas) tmas.addEventListener('click', function(){ try{ __regaliaDiagPush('listener-tab-admin-master', {}); } catch(_e) {} switchTab('admin-master'); });
   var hes = document.getElementById('historyEventSelect');
   if(hes) hes.addEventListener('change', function(){ void refreshHistoryEventBoard(); });
   var hms = document.getElementById('historyMemberSelect');
   if(hms) hms.addEventListener('change', function(){ void refreshHistoryMemberTimeline(); });
-  try{ __regaliaDiagPush('bind-nav', { hasEntry: !!te, hasCumulative: !!tc, hasHistory: !!th, hasAdminCreate: !!tac, hasAdminManage: !!tam }); } catch(_e2) {}
+  try{ __regaliaDiagPush('bind-nav', { hasEntry: !!te, hasCumulative: !!tc, hasHistory: !!th, hasAdminCreate: !!tac, hasAdminManage: !!tam, hasAdminMaster: !!tmas }); } catch(_e2) {}
 })();
 
 (function regaliaSetupPage_(){
