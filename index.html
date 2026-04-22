@@ -857,7 +857,7 @@
 </head>
 <body>
   <div class="header">
-    <img class="logo" id="appLogo" src="app_logo.jpg" alt="REGALIA logo" />
+    <img class="logo" id="appLogo" src="app_logo.jpg" alt="REGALIA logo" loading="eager" decoding="async" onerror="this.style.display='none'" />
     <h1 class="header-app-name">Parking Manager</h1>
     <span class="header-app-version" id="verInline" title="アプリ版">(loading)</span>
   </div>
@@ -1161,12 +1161,12 @@
   </div>
 
 <script>
-/** GitHub Pages: deploy workflow injects this */
-window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec = 'https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec';
+/** GitHub Pages: deploy で https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec のみ置換（window.__GAS_CONFIG_URL__ 全体を sed すると識別子が壊れる） */
+window.__GAS_CONFIG_URL__ = 'https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec';
 /** CI: scripts/inject_gas_bak_into_index.py が GAS /config から上書き（CORS なしで LIFF 初期化可） */
 window.__GAS_BAK_LIFF__ = '__GAS_BAK_LIFF__';
 window.__GAS_BAK_VERSION__ = '__GAS_BAK_VERSION__';
-window.__UI_BUILD__ = '20260422-3';
+window.__UI_BUILD__ = '20260422-4';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1204,7 +1204,7 @@ function regaliaBakVersionUsable_() {
 
 async function fetchParkingConfig_() {
   var elV = document.getElementById('verInline');
-  var base = (typeof window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec === 'string' ? window.https://script.google.com/macros/s/AKfycbxsK9XQQWRqnvyP1lhK0a127LQI4FJkc51FvT18NMu2mXRlb4uQP2udio9PhpxR_nzl/exec : '').trim();
+  var base = (typeof window.__GAS_CONFIG_URL__ === 'string' ? window.__GAS_CONFIG_URL__ : '').trim();
   var dir = String(window.location.href || '').split('?')[0].replace(/[^/]+$/, '');
   window.__REGALIA_PAGES_BASE__ = dir;
 
@@ -1213,7 +1213,7 @@ async function fetchParkingConfig_() {
     regaliaSetTopError('GAS Web アプリの URL が index.html に埋め込まれていません。プライベートリポの Secret GAS_CONFIG_URL と、Pages 用 workflow のデプロイを確認してください。');
     return;
   }
-  if (String(base).indexOf('__GAS_') === 0) {
+  if (String(base).indexOf('__GAS_') === 0 || String(base).indexOf('__REGALIA_INJECT_') === 0) {
     if (elV) elV.textContent = '未デプロイ';
     regaliaSetTopError('GAS URL のプレースホルダが残っています。プライベートリポに docs/index.html を push し、Deploy to GitHub Pages ワークフローが通るか確認してください。');
     return;
