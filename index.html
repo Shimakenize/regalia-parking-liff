@@ -1238,7 +1238,10 @@ async function fetchParkingConfig_() {
     var r = await fetch(u);
     if (!r.ok) throw new Error('config HTTP ' + r.status);
     var j = await r.json();
-    if (j && j.liff_id) window.__REGALIA_LIFF_ID__ = j.liff_id;
+    if (j && j.liff_id != null) {
+      var liffS = String(j.liff_id).trim();
+      if (liffS) window.__REGALIA_LIFF_ID__ = liffS;
+    }
     if (j && j.regalia_gas) window.__REGALIA_GAS__ = true;
     if (j && j.version && elV) {
       elV.textContent = j.version + ' · ui ' + (window.__UI_BUILD__ || '');
@@ -2168,9 +2171,9 @@ async function req(url, method='GET', body=null, raiseOnError=false){
 }
 
 function getLiffId(){
-  const a = (window.__REGALIA_LIFF_ID__ || '').trim();
+  var a = String(window.__REGALIA_LIFF_ID__ == null ? '' : window.__REGALIA_LIFF_ID__).trim();
   if (a) return a;
-  const b = (window.__GAS_BAK_LIFF__ || '').trim();
+  var b = String(window.__GAS_BAK_LIFF__ == null ? '' : window.__GAS_BAK_LIFF__).trim();
   if (b && b !== '2009621879-bcCHTqza' && b.indexOf('__') !== 0) return b;
   return '';
 }
