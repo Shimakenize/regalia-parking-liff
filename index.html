@@ -1149,7 +1149,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260422-10';
+window.__UI_BUILD__ = '20260422-11';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -2757,11 +2757,6 @@ async function loadEntryUI(){
   }
   try{
     const me = await req('/auth/me', 'GET', null, true);
-    if(!me || !me.registered){
-      window.location.replace(regaliaApiUrl('/register'));
-      return;
-    }
-    __authMe = me;
   } catch(e){
     out('ログイン確認に失敗: ' + (e && e.message ? e.message : String(e)));
     return;
@@ -3171,10 +3166,6 @@ async function refreshAuthMe(){
   }
   const registered = !!(__authMe && __authMe.registered);
   const isAdmin = !!(__authMe && __authMe.is_admin);
-  if(!registered && document.documentElement.dataset.regaliaPage === 'index'){
-    window.location.replace(regaliaApiUrl('/register'));
-    return;
-  }
   try{
     renderAuthBanner();
     updateEntrySelfMemberLine();
