@@ -956,7 +956,7 @@
   <div id="pane-history" class="pane">
     <div class="card">
       <div class="legend">当選履歴</div>
-      <p class="meta" style="margin:0 0 8px;"><strong>締切済みのイベントのみ</strong>選べます。選んだ回のエントリーしたメンバーと当落を表示します（緑＝当選、赤＝落選、灰＝辞退、黄＝未確定）。</p>
+      <p class="meta" style="margin:0 0 8px;"><strong>確定済みのイベントのみ</strong>選べます。選んだ回のエントリーしたメンバーと当落を表示します（緑＝当選、赤＝落選、灰＝辞退、黄＝未確定）。</p>
       <div class="row">
         <label>イベントで見る</label>
         <select id="historyEventSelect" class="select-event"></select>
@@ -965,7 +965,7 @@
 
       <hr style="border:none;border-top:1px solid var(--outline);margin:16px 0;" />
 
-      <p class="meta" style="margin:0 0 8px;">メンバーで見ると、<strong>エントリーしたイベントだけ</strong>が締切順に表示されます（イベント名と当落のみ）。</p>
+      <p class="meta" style="margin:0 0 8px;">メンバーで見ると、<strong>エントリーしたイベントだけ</strong>が連絡期限目安の順に表示されます（イベント名と当落のみ）。</p>
       <div class="row">
         <label>メンバーで見る</label>
         <select id="historyMemberSelect"></select>
@@ -980,8 +980,8 @@
       <div class="row"><label>イベント名</label><input id="title" value="練習試合" style="width:260px;" /></div>
       <div class="row"><label>日付</label><input id="eventDate" type="date" /></div>
       <div class="row"><label>駐車場枠数</label><input id="seats" type="number" value="5" min="1" /></div>
-      <div class="row"><label>締切日時</label><input id="deadline" type="datetime-local" style="width:min(100%,260px);min-width:200px;" /></div>
-      <p class="meta" style="margin:-4px 0 8px;">日付を変えると「前日 18:00」に締切を自動セットします。時刻はこの欄で自由に変更できます。</p>
+      <div class="row"><label>連絡期限目安</label><input id="deadline" type="datetime-local" style="width:min(100%,260px);min-width:200px;" /></div>
+      <p class="meta" style="margin:-4px 0 8px;">日付を変えると「前日 18:00」に連絡期限の目安をセットします。自動締切は行わず、希望者が揃ったら手動で確定してください。</p>
       <p id="adminCreateOperationFeedback" class="meta entry-feedback" style="margin:8px 0 10px;text-align:center;min-height:1.35em;" aria-live="polite"></p>
       <button type="button" id="btnCreateEvent" onclick="onCreateEventClick(event)">作成</button>
     </div>
@@ -1007,7 +1007,7 @@
       <p id="adminManageOperationFeedback" class="meta entry-feedback" style="margin:10px 0 12px;text-align:center;min-height:1.35em;" aria-live="polite"></p>
       <button type="button" id="btnReloadEvents" class="secondary" onclick="void adminReloadEvents()">イベント再読込</button>
       <button type="button" id="btnEditEvent" class="secondary" onclick="openEditEventModal()">イベント修正</button>
-      <button type="button" id="btnConfirmPhase1" onclick="confirmPhase1()" title="通常は締切時に自動確定されます。何かの理由で締切前に確定したいときに使います。">第1回確定（締め切り前の強制確定）</button>
+      <button type="button" id="btnConfirmPhase1" onclick="confirmPhase1()" title="希望者が揃ったら手動で確定します。">第1回確定（手動締切）</button>
       <button type="button" id="btnOpenPhase2" onclick="openPhase2()">第2回募集開始</button>
       <button type="button" id="btnEntryRequestMsg" class="secondary" onclick="entryRequestMsg()">エントリー依頼文面生成</button>
       <button type="button" id="btnResultNotifyMsg" class="secondary" onclick="shareMsg()">結果通知文面生成</button>
@@ -1069,10 +1069,10 @@
   <div id="editEventModalBackdrop" class="modal-backdrop" onclick="closeEditEventModal(false)">
     <div class="modal" onclick="event.stopPropagation()">
       <h4>イベント修正</h4>
-      <div class="meta edit-event-modal-intro" style="margin-bottom:8px;">名前・締切日時・枠数・フェーズ・ステータスを更新します。</div>
+      <div class="meta edit-event-modal-intro" style="margin-bottom:8px;">名前・連絡期限目安・枠数・フェーズ・ステータスを更新します。</div>
       <div class="edit-event-modal-scroll" role="region" aria-label="イベント修正フォーム">
       <div class="row"><label>イベント名</label><input id="editEventTitle" style="width:260px;min-width:200px;" /></div>
-      <div class="row"><label>締切日時</label><input id="editEventDeadline" type="datetime-local" style="width:min(100%,260px);min-width:200px;" /></div>
+      <div class="row"><label>連絡期限目安</label><input id="editEventDeadline" type="datetime-local" style="width:min(100%,260px);min-width:200px;" /></div>
       <div class="row"><label>駐車場枠数</label><input id="editEventSeats" type="number" min="1" /></div>
       <div class="row"><label>フェーズ</label>
         <select id="editEventPhase">
@@ -1083,7 +1083,7 @@
       <div class="row"><label>ステータス</label>
         <select id="editEventStatus">
           <option value="collecting">第1回エントリー中 (collecting)</option>
-          <option value="grace_phase1">締切後猶予中 (grace_phase1)</option>
+          <option value="grace_phase1">旧: 締切後猶予中 (grace_phase1)</option>
           <option value="phase1_confirmed">第1回確定 (phase1_confirmed)</option>
           <option value="collecting_phase2">第2回募集中 (collecting_phase2)</option>
           <option value="completed">完了 (completed)</option>
@@ -1093,7 +1093,7 @@
         <label>自動更新</label>
         <label class="meta" style="margin:0;display:flex;gap:8px;align-items:center;cursor:pointer;">
           <input type="checkbox" id="editSkipStatusAutomation" />
-          締切に合わせた自動ステータス更新を止める（手動で運用する）
+          自動更新は廃止済み（既存データ互換用）
         </label>
       </div>
       <div class="row"><label>取り纏め役</label><select id="editEventCoordinator" style="width:min(100%,280px);min-width:200px;"></select></div>
@@ -1149,7 +1149,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260422-11';
+window.__UI_BUILD__ = '20260627-1';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1588,7 +1588,7 @@ function formatEventLabel(e){
 function isEventOpenForEntry(e){
   if(!e) return false;
   const st = String(e.status || '').trim();
-  return st === 'collecting' || st === 'collecting_phase2';
+  return st === 'collecting' || st === 'grace_phase1' || st === 'collecting_phase2';
 }
 
 function historyOutcomeClass(kind){
@@ -1600,14 +1600,11 @@ function historyOutcomeClass(kind){
   return 'history-outcome';
 }
 
-/** 当選履歴の「イベントで見る」：締切日時を過ぎたイベントのみ */
+/** 当選履歴の「イベントで見る」：手動確定後のイベントのみ */
 function isEventPastForHistory(e){
   if(!e) return false;
-  const dl = e.deadline;
-  if(dl == null || dl === '') return false;
-  const t = new Date(dl).getTime();
-  if(isNaN(t)) return false;
-  return t < Date.now();
+  const st = String(e.status || '').trim();
+  return st === 'phase1_confirmed' || st === 'collecting_phase2' || st === 'completed';
 }
 
 function populateHistorySelects(){
@@ -1621,7 +1618,7 @@ function populateHistorySelects(){
     hs.innerHTML = '';
     const z = document.createElement('option');
     z.value = '';
-    z.textContent = '（締切済みを選択）';
+    z.textContent = '（確定済みを選択）';
     hs.appendChild(z);
     pastEvents.forEach(function(e){
       const o = document.createElement('option');
@@ -1664,7 +1661,7 @@ async function refreshHistoryEventBoard(){
   if(!wrap || !sel) return;
   const c = Number(sel.value);
   if(!c){
-    wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;">締切済みのイベントを選択してください。</p>';
+    wrap.innerHTML = '<p class="meta" style="margin:8px 0 0;">確定済みのイベントを選択してください。</p>';
     return;
   }
   wrap.innerHTML = '<p class="meta">読み込み中…</p>';
@@ -1943,7 +1940,7 @@ function updateDeadlineFromEventDate(){
   deadlineInput.value = fmtIsoLocal(deadline);
 }
 
-/** 締切ISO（前日18:00）からイベント日の date input 用 YYYY-MM-DD */
+/** 連絡期限目安（前日18:00）からイベント日の date input 用 YYYY-MM-DD */
 function eventDateFromDeadlineIso(iso){
   if(!iso) return '';
   const deadline = new Date(iso);
@@ -1956,7 +1953,7 @@ function eventDateFromDeadlineIso(iso){
   return `${y}-${m}-${day}`;
 }
 
-/** API の deadline ISO を datetime-local 用 YYYY-MM-DDTHH:mm に変換 */
+/** API の連絡期限目安 ISO を datetime-local 用 YYYY-MM-DDTHH:mm に変換 */
 function isoToDatetimeLocal(iso){
   if(!iso) return '';
   const s = String(iso).trim();
@@ -2055,8 +2052,8 @@ async function saveEditEvent(){
     }
   }
   if(!title || !deadline || !Number.isFinite(seats) || seats <= 0 || !Number.isFinite(phase)){
-    setEditEventFeedback('イベント名・枠数・締切・フェーズを確認してください。', true);
-    showNoticePopup('イベント名・枠数・締切・フェーズを確認してください。');
+    setEditEventFeedback('イベント名・枠数・連絡期限目安・フェーズを確認してください。', true);
+    showNoticePopup('イベント名・枠数・連絡期限目安・フェーズを確認してください。');
     return;
   }
   setEditEventFeedback('保存中…', false, 'pending');
@@ -2250,7 +2247,7 @@ function resolveEventWorkflowStep(ev){
   const st = String(ev.status || 'unknown');
   const ph = Number(ev.phase || 1);
   if(st === 'collecting') return { step: 1, note: '' };
-  if(st === 'grace_phase1') return { step: 1, note: '（締切後1時間の猶予中）' };
+  if(st === 'grace_phase1') return { step: 1, note: '（旧ステータス: 手動確定待ち）' };
   if(st === 'phase1_confirmed') return { step: 2, note: '' };
   if(st === 'collecting_phase2') return { step: 3, note: '' };
   if(st === 'completed'){
@@ -2288,7 +2285,7 @@ function refreshEventStatusUI(){
   const rem = Number(ev.remaining_seats != null ? ev.remaining_seats : 0);
   const wc = Number(ev.winner_count != null ? ev.winner_count : 0);
   const lines = [
-    `締切(ISO): ${ev.deadline || '—'}`,
+    `連絡期限目安: ${ev.deadline || '—'}`,
     `枠数: ${ev.seats}`,
     `当選者数: ${wc}`,
     `残枠: ${rem}`,
@@ -2296,7 +2293,7 @@ function refreshEventStatusUI(){
     `status: ${ev.status}`,
   ];
   if(ev.skip_status_automation){
-    lines.push('自動ステータス更新: オフ（手動運用）');
+    lines.push('自動ステータス更新: 廃止済み（手動運用）');
   }
   if(ev.coordinator_member_number != null && ev.coordinator_member_number !== ''){
     const ja = String(ev.coordinator_name_ja || '').trim();
@@ -2341,7 +2338,7 @@ function refreshAdminButtons(){
   if(btnDelete) btnDelete.disabled = hasResult;
   if(btnConfirm) btnConfirm.disabled = hasResult;
 
-  // 第2回募集開始（通常は自動）。手動ボタンは後方互換で残す
+  // 第2回募集開始。第1回確定後、残枠がある場合に手動で開始する。
   const remaining = Number(ev.remaining_seats != null ? ev.remaining_seats : 0);
   const titleBlob = String(ev.title || '') + ' ' + String(ev.header || '');
   const isTRM = /TRM/i.test(titleBlob);
@@ -2569,8 +2566,8 @@ async function createEvent(){
     const seats = Number(document.getElementById('seats').value);
     const deadline = document.getElementById('deadline').value;
     if(!title || !deadline || !Number.isFinite(seats) || seats <= 0){
-      setAdminCreateFeedback('入力不足: イベント名・枠数・締切を確認してください。', true);
-      showNoticePopup('入力不足: イベント名・枠数・締切を確認してください。');
+      setAdminCreateFeedback('入力不足: イベント名・枠数・連絡期限目安を確認してください。', true);
+      showNoticePopup('入力不足: イベント名・枠数・連絡期限目安を確認してください。');
       return;
     }
     setAdminCreateFeedback('イベント作成中…', false, 'pending');
@@ -2757,6 +2754,11 @@ async function loadEntryUI(){
   }
   try{
     const me = await req('/auth/me', 'GET', null, true);
+    __authMe = me;
+    if(!me || !me.registered){
+      window.location.replace(regaliaApiUrl('/register'));
+      return;
+    }
   } catch(e){
     out('ログイン確認に失敗: ' + (e && e.message ? e.message : String(e)));
     return;
@@ -2940,17 +2942,14 @@ function setRegisterFeedback(msg, isError){
   el.style.color = isError ? '#fca5a5' : '#6ee7b7';
 }
 
-/** 締切前（Open）のイベントに限る。当選履歴の「過去」と同じ締切判定。 */
-function isEventDeadlineStillOpenForCoord(ev){
+/** 取りまとめ役が操作できる手動運用中のイベント。 */
+function isEventStatusOpenForCoord(ev){
   if(!ev) return false;
-  const dl = ev.deadline;
-  if(dl == null || dl === '') return false;
-  const t = new Date(dl).getTime();
-  if(isNaN(t)) return false;
-  return t >= Date.now();
+  const st = String(ev.status || '').trim();
+  return st === 'collecting' || st === 'grace_phase1' || st === 'phase1_confirmed' || st === 'collecting_phase2';
 }
 
-/** いずれかの Open イベントで取り纏め役のとき（バッジ・メニュー用） */
+/** いずれかの手動運用中イベントで取り纏め役のとき（バッジ・メニュー用） */
 function isUserCoordinatorForAnyOpenEvent(){
   if(!__authMe || !__authMe.registered) return false;
   const mn = Number(__authMe.member_number);
@@ -2960,12 +2959,12 @@ function isUserCoordinatorForAnyOpenEvent(){
     const ev = evs[i];
     if(ev.coordinator_member_number == null || ev.coordinator_member_number === '') continue;
     if(Number(ev.coordinator_member_number) !== mn) continue;
-    if(isEventDeadlineStillOpenForCoord(ev)) return true;
+    if(isEventStatusOpenForCoord(ev)) return true;
   }
   return false;
 }
 
-/** Openイベントの取り纏め役、または前回確定で指名された「次回取りまとめ役」(members.next_admin) */
+/** 手動運用中イベントの取り纏め役、または前回確定で指名された「次回取りまとめ役」(members.next_admin) */
 function hasCoordinatorMenuRole(){
   if(!__authMe || !__authMe.registered) return false;
   if(isUserCoordinatorForAnyOpenEvent()) return true;
@@ -3183,9 +3182,9 @@ async function refreshAuthMe(){
     const openCoord = isUserCoordinatorForAnyOpenEvent();
     const nextNom = !!(__authMe && __authMe.is_next_coordinator);
     if(openCoord && nextNom){
-      setEntryFeedback('取りまとめ役としてログイン中です（締切前のイベントの管理・代理に加え、次回イベントの取りまとめ役に指名されています）。', false);
+      setEntryFeedback('取りまとめ役としてログイン中です（受付中・確定作業中イベントの管理・代理に加え、次回イベントの取りまとめ役に指名されています）。', false);
     } else if(openCoord){
-      setEntryFeedback('アクティブなイベントの取りまとめ役としてログイン中です（締切前の該当イベントで代理エントリー・イベント変更が可能）。', false);
+      setEntryFeedback('アクティブなイベントの取りまとめ役としてログイン中です（受付中・確定作業中の該当イベントで代理エントリー・イベント変更が可能）。', false);
     } else if(nextNom){
       setEntryFeedback('次回イベントの取りまとめ役に指名されています（新規イベントの作成も可能です）。', false);
     } else {
@@ -3402,12 +3401,13 @@ function isUserCoordinatorForSelectedEvent(){
 
 function canProxyForSelectedEntryEvent(){
   if(!__authMe || !__authMe.registered) return false;
-  if(__authMe.is_admin) return true;
-  if(!isUserCoordinatorForSelectedEvent()) return false;
   const es = document.getElementById('eventSelect');
   const c = es ? Number(es.value) : 0;
   const ev = (__eventsCache || []).find(function(x){ return Number(x.event_col) === c; });
-  return isEventDeadlineStillOpenForCoord(ev);
+  if(!isEventOpenForEntry(ev)) return false;
+  if(__authMe.is_admin) return true;
+  if(!isUserCoordinatorForSelectedEvent()) return false;
+  return true;
 }
 
 function updateProxyEntryRoleIcons(){
