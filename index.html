@@ -280,18 +280,30 @@
     .next-coordinator-flag {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
+      gap: 3px;
       flex-shrink: 0;
       color: #fbbf24;
       vertical-align: middle;
       cursor: help;
+      white-space: nowrap;
+    }
+    .next-coordinator-flag-ico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
     }
     .next-coordinator-flag svg {
       width: 16px;
       height: 16px;
       display: block;
+    }
+    .next-coordinator-flag-label {
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
     }
     .history-outcome-cell {
       display: inline-flex;
@@ -1171,7 +1183,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260627-2';
+window.__UI_BUILD__ = '20260627-3';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1617,12 +1629,19 @@ function isEventOpenForEntry(e){
 }
 
 function makeNextCoordinatorFlagEl(){
+  const wrap = document.createElement('span');
+  wrap.className = 'next-coordinator-flag';
+  wrap.title = '次回取りまとめ役';
+  wrap.setAttribute('aria-label', '次回取りまとめ役');
   const ico = document.createElement('span');
-  ico.className = 'next-coordinator-flag';
-  ico.title = '次回取り纏め役';
-  ico.setAttribute('aria-label', '次回取り纏め役');
+  ico.className = 'next-coordinator-flag-ico';
   ico.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 2v20M5 4h13l-2.2 3.5L18 11H5"/></svg>';
-  return ico;
+  const txt = document.createElement('span');
+  txt.className = 'next-coordinator-flag-label';
+  txt.textContent = '(次回取りまとめ役)';
+  wrap.appendChild(ico);
+  wrap.appendChild(txt);
+  return wrap;
 }
 
 function historyOutcomeClass(kind){
