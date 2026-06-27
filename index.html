@@ -277,6 +277,28 @@
       vertical-align: middle;
       cursor: help;
     }
+    .next-coordinator-flag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: #fbbf24;
+      vertical-align: middle;
+      cursor: help;
+    }
+    .next-coordinator-flag svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+    .history-outcome-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
     .history-results-table,
     .history-timeline-table {
       width: 100%;
@@ -1149,7 +1171,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260627-1';
+window.__UI_BUILD__ = '20260627-2';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1504,6 +1526,9 @@ async function refreshCumulativePane(){
       warn.setAttribute('aria-label', '初回登録が未完了');
       nmWrap.appendChild(warn);
     }
+    if(m.is_next_coordinator){
+      nmWrap.appendChild(makeNextCoordinatorFlagEl());
+    }
     tdName.appendChild(nmWrap);
     tr.appendChild(tdPri);
     tr.appendChild(tdC);
@@ -1589,6 +1614,15 @@ function isEventOpenForEntry(e){
   if(!e) return false;
   const st = String(e.status || '').trim();
   return st === 'collecting' || st === 'grace_phase1' || st === 'collecting_phase2';
+}
+
+function makeNextCoordinatorFlagEl(){
+  const ico = document.createElement('span');
+  ico.className = 'next-coordinator-flag';
+  ico.title = '次回取り纏め役';
+  ico.setAttribute('aria-label', '次回取り纏め役');
+  ico.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 2v20M5 4h13l-2.2 3.5L18 11H5"/></svg>';
+  return ico;
 }
 
 function historyOutcomeClass(kind){
@@ -1694,10 +1728,16 @@ async function refreshHistoryEventBoard(){
       const tdJa = document.createElement('td');
       tdJa.textContent = row.name_ja || '—';
       const tdO = document.createElement('td');
+      const outcomeWrap = document.createElement('span');
+      outcomeWrap.className = 'history-outcome-cell';
       const span = document.createElement('span');
       span.className = historyOutcomeClass(row.kind);
       span.textContent = row.label || '—';
-      tdO.appendChild(span);
+      outcomeWrap.appendChild(span);
+      if(row.kind === 'winner' && row.is_next_coordinator){
+        outcomeWrap.appendChild(makeNextCoordinatorFlagEl());
+      }
+      tdO.appendChild(outcomeWrap);
       tr.appendChild(tdN);
       tr.appendChild(tdJa);
       tr.appendChild(tdO);
