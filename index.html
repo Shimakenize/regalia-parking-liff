@@ -1183,7 +1183,7 @@ window.__GAS_BAK_VERSION__ = '1.0.0-gas';
 /** CI(sed)が LIFF 用プレースホルダ（値1行）を一括置換するため、比較文にその平文を書くと v === 実ID になり不成立。REGALIA_UNSET_* は連結式のみ。 */
 var REGALIA_UNSET_BAK_LIFF_ = '__' + 'REGALIA_INJECT_LIFF_ID' + '__';
 var REGALIA_UNSET_BAK_GASVER_ = '__' + 'REGALIA_INJECT_GAS_VERSION' + '__';
-window.__UI_BUILD__ = '20260627-3';
+window.__UI_BUILD__ = '20260628-1';
 window.__REGALIA_GAS__ = false;
 window.__REGALIA_CONFIG_LOADED__ = false;
 
@@ -1660,11 +1660,29 @@ function isEventPastForHistory(e){
   return st === 'phase1_confirmed' || st === 'collecting_phase2' || st === 'completed';
 }
 
+/** プルダウン用: テストイベント（累積・取り纏め対象外）か */
+function isTestEventForSelect(e){
+  if(!e) return false;
+  if(e.skip_cumulative_and_admin) return true;
+  const t = String(e.title || e.header || '').trim();
+  return t.indexOf('自由に試すテストイベント') >= 0 || t.indexOf('テスト') >= 0;
+}
+
+/** プルダウン用: 新しい順（event_col 降順）、テストイベントは最下位 */
+function sortEventsForSelect(events){
+  return events.slice().sort(function(a, b){
+    const aTest = isTestEventForSelect(a) ? 1 : 0;
+    const bTest = isTestEventForSelect(b) ? 1 : 0;
+    if(aTest !== bTest) return aTest - bTest;
+    return Number(b.event_col) - Number(a.event_col);
+  });
+}
+
 function populateHistorySelects(){
   const hs = document.getElementById('historyEventSelect');
   const hm = document.getElementById('historyMemberSelect');
   const events = Array.isArray(__eventsCache) ? __eventsCache : [];
-  const pastEvents = events.filter(isEventPastForHistory);
+  const pastEvents = sortEventsForSelect(events.filter(isEventPastForHistory));
   const members = Array.isArray(__membersCache) ? __membersCache : [];
   if(hs){
     const cur = hs.value;
@@ -2552,7 +2570,7 @@ async function listEvents(){
   try{
     const optsEntry = [];
     const optsAdmin = [];
-    events.forEach(e => {
+    sortEventsForSelect(events).forEach(e => {
       if(isEventOpenForEntry(e)){
         const opt1 = document.createElement('option');
         opt1.value = String(e.event_col);
